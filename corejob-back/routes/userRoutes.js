@@ -1,6 +1,6 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import { UserModel } from "../models/User";
+import { UserModel } from "../models/User.js";
 
 const router = express.Router();
 
@@ -10,25 +10,29 @@ router.get("/", async (req, res) => {
     const users = await UserModel.find({}).select("-password");
     res.status(200).json(users);
   } catch (e) {
+    res.status(500).json({ message: "Error fetching users", error: e.message });
+  }
+});
+
+// GET ONE BY ID
+router.get("/:id", async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    res.json(user);
+  } catch (error) {
     res
       .status(500)
-      .json({ message: "Error fetching users", error: e.message });
+      .json({ message: "Error fetching user", error: error.message });
   }
 });
 
 // CREATE NEW USER
 router.post("/", async (req, res) => {
   try {
-    const {
-      email,
-      password,
-      full_name,
-      phone,
-      role,
-      is_verified,
-      location_country,
-      location_city,
-    } = req.body;
+    const { email, password, full_name, phone, role } = req.body;
 
     if (!email || !password || !full_name || !phone || !role) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -41,27 +45,17 @@ router.post("/", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new UserModel({
-      email,
-      password: hashedPassword,
-      full_name,
-      phone,
-      role,
-      is_verified,
-      location_country,
-      location_city,
-    });
-
+    const user = new UserModel({ ...req.body, password: hashedPassword });
     await user.save();
 
-    const userObj = user.toObject();
-    delete userObj.password;
-    res.status(201).json(userObj);
+    res.status(201).json(user);
   } catch (error) {
     if (error?.code === 11000) {
       return res.status(409).json({ message: "Email already exists" });
     }
-    res.status(400).json({ message: "Error creating user", error: error.message });
+    res
+      .status(400)
+      .json({ message: "Error creating user", error: error.message });
   }
 });
 
@@ -75,8 +69,6 @@ router.put("/:id", async (req, res) => {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    Object.keys(updates).forEach((k) => updates[k] === undefined && delete updates[k]);
-
     const updated = await UserModel.findByIdAndUpdate(id, updates, {
       new: true,
       runValidators: true,
@@ -86,16 +78,18 @@ router.put("/:id", async (req, res) => {
 
     const userObj = updated.toObject();
     delete userObj.password;
-    res.status(200).json(userObj);
+    res.status(201).json(userObj);
   } catch (error) {
     if (error?.code === 11000) {
       return res.status(409).json({ message: "Email already exists" });
     }
-    res.status(400).json({ message: "Error updating user", error: error.message });
+    res
+      .status(400)
+      .json({ message: "Error updating user", error: error.message });
   }
 });
 
-// DELTE USER BY ID
+// DELETE USER BY ID
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -103,7 +97,9 @@ router.delete("/:id", async (req, res) => {
     if (!deleted) return res.status(404).json({ message: "User not found" });
     res.json({ message: "User deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting user", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting user", error: error.message });
   }
 });
 
