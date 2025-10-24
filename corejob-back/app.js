@@ -6,6 +6,7 @@ import profileRoutes from "./routes/profileRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use("/profiles", profileRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/services", serviceRoutes);
 app.use("/bookings", bookingRoutes);
+app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewRoutes);
 
 app.get("/", (req, res) => {
