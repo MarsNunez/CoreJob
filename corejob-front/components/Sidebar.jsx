@@ -106,7 +106,7 @@ export default function Sidebar() {
         </div>
         {!collapsed && (
           <div className="mr-auto">
-            <div className="text-sm font-semibold">SchoolManager</div>
+            <div className="text-sm font-semibold">CoreJob.</div>
             <div className="text-xs text-neutral-600 dark:text-neutral-300 border border-neutral-500 rounded px-2 py-0.5 inline-flex items-center gap-1">
               {roleLabel || (isAuthed ? "User" : "Guest")}
             </div>
@@ -166,12 +166,32 @@ export default function Sidebar() {
       <nav className="flex flex-col text-[1rem] gap-y-2">
         <NavItem href="#" icon="fa-solid fa-gear" label="Settings" />
         {!isAuthed ? (
-          <NavItem
-            href="/login"
-            icon="fa-solid fa-right-to-bracket"
-            label="Login"
-            className="text-blue-600"
-          />
+          <div
+            className={
+              collapsed
+                ? "mt-3 flex justify-center"
+                : "grid grid-cols-5 text-center gap-x-2 mt-3"
+            }
+          >
+            <div
+              className={`${
+                !collapsed ? "col-span-3" : "px-3 py-3"
+              } rounded-md bg-white text-black py-1 flex items-center justify-center`}
+            >
+              {collapsed ? (
+                <i className="fa-solid fa-right-to-bracket"></i>
+              ) : (
+                "Register"
+              )}
+            </div>
+            <div
+              className={`col-span-2 border rounded-md py-1 ${
+                collapsed && "hidden"
+              }`}
+            >
+              Login
+            </div>
+          </div>
         ) : (
           <NavItem
             onClick={logout}
