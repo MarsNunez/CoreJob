@@ -5,6 +5,81 @@ const stats = [
   { value: "24/7", label: "Disponible" },
 ];
 
+const categories = [
+  {
+    title: "Limpieza",
+    description: "Limpieza del hogar y oficina",
+    services: "1,250 servicios",
+    icon: "fa-hands",
+    bg: "bg-[#eaf0ff]",
+    text: "text-[#1b4fd2]",
+    border: "border-[#1b4fd2]",
+  },
+  {
+    title: "Manitas",
+    description: "Reparaciones y mantenimiento",
+    services: "890 servicios",
+    icon: "fa-screwdriver-wrench",
+    bg: "bg-[#fff0e1]",
+    text: "text-[#d45800]",
+    border: "border-[#d45800]",
+  },
+  {
+    title: "Delivery",
+    description: "Envíos y mudanzas",
+    services: "650 servicios",
+    icon: "fa-truck-fast",
+    bg: "bg-[#e7f8ec]",
+    text: "text-[#138845]",
+    border: "border-[#138845]",
+  },
+  {
+    title: "Clases",
+    description: "Tutorías y formación",
+    services: "420 servicios",
+    icon: "fa-graduation-cap",
+    bg: "bg-[#f5e9ff]",
+    text: "text-[#7a32c6]",
+    border: "border-[#7a32c6]",
+  },
+  {
+    title: "Jardinería",
+    description: "Cuidado de jardines",
+    services: "380 servicios",
+    icon: "fa-leaf",
+    bg: "bg-[#e6f6ef]",
+    text: "text-[#1a7d5e]",
+    border: "border-[#1a7d5e]",
+  },
+  {
+    title: "Belleza",
+    description: "Peluquería y estética",
+    services: "320 servicios",
+    icon: "fa-scissors",
+    bg: "bg-[#feeff7]",
+    text: "text-[#d12b7f]",
+    border: "border-[#d12b7f]",
+  },
+  {
+    title: "Tecnología",
+    description: "Soporte técnico",
+    services: "280 servicios",
+    icon: "fa-laptop",
+    bg: "bg-[#ecf0ff]",
+    text: "text-[#3535c8]",
+    border: "border-[#3535c8]",
+  },
+  {
+    title: "Mascotas",
+    description: "Cuidado de mascotas",
+    services: "190 servicios",
+    icon: "fa-heart",
+    bg: "bg-[#fde8ea]",
+    text: "text-[#d12f32]",
+    border: "border-[#d12f32]",
+  },
+];
+
 export default function Home() {
   return (
     <section className="text-white">
@@ -65,6 +140,45 @@ export default function Home() {
       </div>
 
       {/* 02 EXPLORE */}
+      <section className="bg-black px-4 py-16 text-white sm:px-8 lg:px-16">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 text-center">
+          <h2 className="text-3xl font-bold sm:text-4xl">
+            Explora nuestras categorías
+          </h2>
+          <p className="text-sm text-neutral-300 sm:text-base">
+            Encuentra profesionales especializados en cada área
+          </p>
+
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {categories.map((category) => (
+              <article
+                key={category.title}
+                className={`${category.bg} border-2 ${category.border} text-center rounded-xl px-6 py-8 shadow-[0_15px_35px_rgba(0,0,0,0.08)] transition hover:-translate-y-1`}
+              >
+                <div className="mb-6 mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/80">
+                  <i
+                    className={`fa-solid ${category.icon} ${category.text} text-lg`}
+                  ></i>
+                </div>
+                <h3 className={`text-xl font-semibold ${category.text}`}>
+                  {category.title}
+                </h3>
+                <p className="mt-2 text-sm text-neutral-600">
+                  {category.description}
+                </p>
+                <p className="mt-4 text-xs font-semibold text-neutral-500">
+                  {category.services}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <button className="mx-auto mt-4 inline-flex items-center gap-2 text-emerald-300 transition hover:text-emerald-200">
+            Ver todas las categorías
+            <i className="fa-solid fa-arrow-right-long text-sm"></i>
+          </button>
+        </div>
+      </section>
     </section>
   );
 }
