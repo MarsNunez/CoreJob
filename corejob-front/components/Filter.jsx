@@ -79,10 +79,11 @@ const Filter = () => {
         <div
           className={`border border-[#065f46] w-fit mx-auto px-5 rounded-b-md ${
             collapsed && "rounded-t-md"
-          }  bg-[#065f46] cursor-pointer`}
+          }  bg-[#065f46] cursor-pointer flex items-center gap-x-2`}
           onClick={() => setCollapsed((prev) => !prev)}
         >
-          {`${collapsed ? "Mostrar" : "Ocultar"} filtros`}
+          <i className="fa-solid fa-arrow-up-wide-short text-xs"></i>
+          <p>{`${collapsed ? "Mostrar" : "Ocultar"} filtros`}</p>
         </div>
       </div>
     </>
