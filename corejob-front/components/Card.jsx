@@ -29,7 +29,7 @@ export default function Card() {
           <div>
             <div className="flex items-center gap-x-1">
               <p className="text-sm font-semibold">Ana Martín</p>
-              <i class="fa-solid fa-circle-check text-green-600"></i>
+              <i className="fa-solid fa-circle-check text-green-600"></i>
             </div>
             <div className="flex items-center gap-1 text-xs text-slate-300">
               <i className="fa-solid fa-star text-yellow-400"></i>

@@ -191,13 +191,16 @@ export default function Home() {
           </p>
 
           {/* Card here */}
-          <div className="mx-auto">
+          <div className="mx-auto gap-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+            <Card />
+            <Card />
+            <Card />
             <Card />
           </div>
 
-          <button className="mx-auto mt-4 inline-flex items-center gap-2 text-emerald-300 transition hover:text-emerald-200">
-            Ver todas las categorías
-            <i className="fa-solid fa-arrow-right-long text-sm"></i>
+          <button className="mx-auto mt-4 inline-flex items-center gap-2 text-emerald-300 transition duration-200 hover:text-black border border-emerald-600 hover:bg-emerald-600 px-5 py-2 rounded-lg">
+            <i className="fa-solid fa-magnifying-glass mr-1"></i>
+            Explorar todos los servicios
           </button>
         </div>
       </section>
