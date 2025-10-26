@@ -141,8 +141,13 @@ export default function Sidebar() {
       >
         OVERVIEW
       </div>
-      <nav className="flex flex-col gap-1">
-        <NavItem href="/" icon="fa-solid fa-house" label="Home" />
+      <nav className={`flex flex-col gap-3 ${collapsed && "gap-5"}`}>
+        <NavItem href="/" icon="fa-solid fa-house" label="Inicio" />
+        <NavItem
+          href="/search"
+          icon="fa-solid fa-magnifying-glass"
+          label="Buscar"
+        />
         {isAuthed && (
           <NavItem
             href="/controlPanel"
