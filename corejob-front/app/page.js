@@ -1,3 +1,5 @@
+import Card from "../components/Card.jsx";
+
 const stats = [
   { value: "15,000+", label: "Profesionales" },
   { value: "50+", label: "Categorías" },
@@ -171,6 +173,26 @@ export default function Home() {
                 </p>
               </article>
             ))}
+          </div>
+
+          <button className="mx-auto mt-4 inline-flex items-center gap-2 text-emerald-300 transition hover:text-emerald-200">
+            Ver todas las categorías
+            <i className="fa-solid fa-arrow-right-long text-sm"></i>
+          </button>
+        </div>
+      </section>
+
+      {/* 03 Service cards */}
+      <section className="bg-black px-4 py-16 text-white sm:px-8 lg:px-16">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 text-center">
+          <h2 className="text-3xl font-bold sm:text-4xl">Servicios para ti</h2>
+          <p className="text-sm text-neutral-300 sm:text-base">
+            Descubre profesionales altamente valorados
+          </p>
+
+          {/* Card here */}
+          <div className="mx-auto">
+            <Card />
           </div>
 
           <button className="mx-auto mt-4 inline-flex items-center gap-2 text-emerald-300 transition hover:text-emerald-200">
