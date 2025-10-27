@@ -153,6 +153,11 @@ export default function Sidebar() {
           icon="fa-solid fa-suitcase"
           label="Mis servicios"
         />
+        <NavItem
+          href="/profile/29381293823829"
+          icon="fa-solid fa-user"
+          label="Perfil"
+        />
         {isAuthed && (
           <NavItem
             href="/controlPanel"
