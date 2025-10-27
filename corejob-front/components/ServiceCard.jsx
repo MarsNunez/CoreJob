@@ -1,8 +1,9 @@
+import Link from "next/link";
+
 export default function ServiceCard({
   title = "House Painting",
   variant = "Eco",
   rating = 4.6,
-  reviews = 5,
   joined = "Apr 21, 2024",
   location = "London",
   schedule = "Sun–Fri · 9:30 AM – 11 PM",
@@ -24,7 +25,7 @@ export default function ServiceCard({
           </div>
           <div className="flex items-center gap-1 text-xs font-semibold text-amber-500">
             <i className="fa-solid fa-star text-xs"></i>
-            {rating}/{reviews}
+            {rating}
           </div>
         </header>
 
@@ -51,9 +52,12 @@ export default function ServiceCard({
               <span className="text-base text-slate-500">{priceUnit}</span>
             </p>
           </div>
-          <button className="rounded-2xl bg-[#065f46] px-3 py-2 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(6,95,70,0.3)] transition hover:translate-y-0.5 hover:bg-[#077254]">
-            Booking Now
-          </button>
+          <Link
+            href={"/myservices/manage/102302"}
+            className="rounded-2xl bg-[#065f46] px-3 py-2 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(6,95,70,0.3)] transition hover:translate-y-0.5 hover:bg-[#077254]"
+          >
+            Gestionar
+          </Link>
         </footer>
       </div>
     </article>
