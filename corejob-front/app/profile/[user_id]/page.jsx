@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import PortfolioModal from "@/components/PortfolioModal";
 
 const mockProfile = {
   avatar:
@@ -29,6 +30,12 @@ const mockPortfolio = [
     date: "Marzo 2024",
     cover:
       "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1564540583246-934409427776?auto=format&fit=crop&w=1400&q=80",
+    ],
   },
   {
     id: 2,
@@ -39,6 +46,11 @@ const mockPortfolio = [
     date: "Febrero 2024",
     cover:
       "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=900&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1400&q=80",
+    ],
   },
   {
     id: 3,
@@ -49,6 +61,10 @@ const mockPortfolio = [
     date: "Enero 2024",
     cover:
       "https://images.unsplash.com/photo-1616628182501-d48b1f7c7b61?auto=format&fit=crop&w=900&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1616628182501-d48b1f7c7b61?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1520881363902-7f0e1a3e5b37?auto=format&fit=crop&w=1400&q=80",
+    ],
   },
   {
     id: 4,
@@ -59,6 +75,11 @@ const mockPortfolio = [
     date: "Noviembre 2023",
     cover:
       "https://images.unsplash.com/photo-1431576901776-e539bd916ba2?auto=format&fit=crop&w=900&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1431576901776-e539bd916ba2?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1523419409543-a5e549c1a1f6?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1444419988131-046ed4e5ffd6?auto=format&fit=crop&w=1400&q=80",
+    ],
   },
   {
     id: 5,
@@ -69,6 +90,10 @@ const mockPortfolio = [
     date: "Octubre 2023",
     cover:
       "https://images.unsplash.com/photo-1503389152951-9f343605f61e?auto=format&fit=crop&w=900&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1503389152951-9f343605f61e?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?auto=format&fit=crop&w=1400&q=80",
+    ],
   },
   {
     id: 6,
@@ -79,11 +104,19 @@ const mockPortfolio = [
     date: "Agosto 2023",
     cover:
       "https://images.unsplash.com/photo-1600585154340-0ef3c08dcdb6?auto=format&fit=crop&w=900&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1600585154340-0ef3c08dcdb6?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1581093588401-16ec9a1990b5?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1523419409543-a5e549c1a1f6?auto=format&fit=crop&w=1400&q=80",
+    ],
   },
 ];
 
 export default function ProfileView() {
   const [activeCategory, setActiveCategory] = useState("Todos");
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const categories = useMemo(
     () => ["Todos", ...new Set(mockPortfolio.map((item) => item.category))],
@@ -250,7 +283,20 @@ export default function ProfileView() {
             {filteredPortfolio.map((project) => (
               <article
                 key={project.id}
-                className="flex flex-col gap-3 rounded-[24px] border border-white/10 bg-[#101e2a] p-4 text-white transition hover:-translate-y-1 hover:border-emerald-500/40"
+                className="flex cursor-pointer flex-col gap-3 rounded-[24px] border border-white/10 bg-[#101e2a] p-4 text-white transition hover:-translate-y-1 hover:border-emerald-500/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setSelectedProject(project);
+                  setOpenModal(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedProject(project);
+                    setOpenModal(true);
+                  }
+                }}
               >
                 <div className="aspect-video overflow-hidden rounded-2xl">
                   <img
@@ -275,6 +321,11 @@ export default function ProfileView() {
             ))}
           </div>
         </section>
+        <PortfolioModal
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+          project={selectedProject}
+        />
       </div>
     </section>
   );
