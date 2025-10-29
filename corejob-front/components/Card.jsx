@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 const DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1485579149621-3123dd979885?q=80&w=800&auto=format&fit=crop";
 const DEFAULT_PROVIDER = {
@@ -23,6 +27,7 @@ export default function Card({
   availabilityValue = "Disponible esta semana",
   children,
 }) {
+  const [openInfo, setOpenInfo] = useState(false);
   const isHorizontal = layout === "horizontal";
   const containerClasses = isHorizontal
     ? "flex w-full flex-col md:flex-row max-w-full"
@@ -37,11 +42,16 @@ export default function Card({
     : "space-y-4 px-6 py-6";
 
   return (
+    <>
     <article
       className={`${containerClasses} overflow-hidden rounded-xl bg-[#111c27] text-white shadow-[0_20px_45px_rgba(0,0,0,0.4)]`}
     >
       <div className={mediaClasses}>
-        <img src={imageSrc} alt={title} className="h-full w-full object-cover" />
+        <img
+          src={imageSrc}
+          alt={title}
+          className="h-full w-full object-cover"
+        />
         {badgeLeft ? (
           <span className="absolute left-4 top-4 rounded-full bg-[#055941] px-4 py-1 text-xs font-semibold">
             {badgeLeft}
@@ -100,9 +110,9 @@ export default function Card({
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
-              <button className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-white transition hover:bg-white/10">
-                <i className="fa-regular fa-comment"></i>
-                Contactar
+              <button onClick={() => setOpenInfo(true)} className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-white transition hover:bg-white/10">
+                <i className="fa-regular fa-circle-question"></i>
+                Info
               </button>
               <button className="flex items-center justify-center gap-2 rounded-xl bg-[#0d7a55] px-4 py-2 font-semibold text-white transition hover:bg-[#096043]">
                 <i className="fa-regular fa-calendar"></i>
@@ -113,5 +123,77 @@ export default function Card({
         )}
       </div>
     </article>
+
+    {openInfo && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        onClick={() => setOpenInfo(false)}
+      >
+        <div
+          className="relative mx-4 w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-[#0b1621] shadow-[0_25px_55px_rgba(0,0,0,0.55)]"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+        >
+          <button
+            onClick={() => setOpenInfo(false)}
+            aria-label="Cerrar"
+            className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
+          >
+            <i className="fa-solid fa-xmark"></i>
+          </button>
+
+          <div className="relative aspect-[16/10] w-full bg-black/30">
+            <img src={imageSrc} alt={title} className="absolute inset-0 h-full w-full object-cover" />
+          </div>
+
+          <div className="border-t border-white/10 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-xl font-semibold text-white">{title}</h3>
+              <div className="flex items-center gap-2 text-xs">
+                {badgeLeft && (
+                  <span className="rounded-full bg-[#055941] px-3 py-1 text-white">{badgeLeft}</span>
+                )}
+                {badgeRight && (
+                  <span className="rounded-full bg-white/80 px-3 py-1 text-[#1c1c1c]">{badgeRight}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center gap-3 text-sm text-slate-300">
+              <img src={provider.avatar} alt={provider.name} className="h-10 w-10 rounded-full object-cover" />
+              <div>
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-white">{provider.name}</span>
+                  <i className="fa-solid fa-circle-check text-green-600"></i>
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <i className="fa-solid fa-star text-yellow-400"></i>
+                  <span className="font-semibold text-white">{provider.rating}</span>
+                  <span>({provider.reviews})</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 md:grid-cols-3">
+              <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <span className="text-slate-400">{priceLabel}</span>
+                <span className="font-semibold">{priceValue}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <span className="text-slate-400">{durationLabel}</span>
+                <span className="font-semibold">{durationValue}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <span className="text-slate-400">{availabilityLabel}</span>
+                <span className="font-semibold text-[#0d7a55]">{availabilityValue}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

@@ -23,7 +23,7 @@ const mockProfile = {
 
 export default function ProfileView() {
   return (
-    <section className="min-h-screen bg-[radial-gradient(circle_at_top,_#09131d,_#04070a)] px-4 py-10 text-white sm:px-8 lg:px-16">
+    <section className="min-h-screen bg-[radial-gradient(circle_at_top,#09131d,#04070a)] px-4 py-10 text-white sm:px-8 lg:px-16">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <Link
           href="/search"
