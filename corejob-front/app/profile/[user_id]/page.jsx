@@ -4,6 +4,8 @@ import Link from "next/link";
 import ProfileHeader from "@/components/ProfileHeader";
 import ProfilePortfolio from "@/components/ProfilePortfolio";
 import ProfileServices from "@/components/ProfileServices";
+import ProfileReviews from "@/components/ProfileReviews";
+import ProfileAbout from "@/components/ProfileAbout";
 
 const mockProfile = {
   avatar:
@@ -36,6 +38,8 @@ export default function ProfileView() {
         <ProfileHeader profile={mockProfile} />
         <ProfilePortfolio />
         <ProfileServices />
+        <ProfileReviews />
+        <ProfileAbout />
       </div>
     </section>
   );
