@@ -5,7 +5,9 @@ import ProfileHeader from "@/components/ProfileHeader";
 import ProfilePortfolio from "@/components/ProfilePortfolio";
 import ProfileServices from "@/components/ProfileServices";
 import ProfileReviews from "@/components/ProfileReviews";
+import ProfileServiceArea from "@/components/ProfileServiceArea";
 import ProfileAbout from "@/components/ProfileAbout";
+import ProfileQuickBooking from "@/components/ProfileQuickBooking";
 
 const mockProfile = {
   avatar:
@@ -36,10 +38,24 @@ export default function ProfileView() {
         </Link>
 
         <ProfileHeader profile={mockProfile} />
+
         <ProfilePortfolio />
         <ProfileServices />
-        <ProfileReviews />
-        <ProfileAbout />
+
+        <div className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start lg:gap-8 xl:gap-12">
+          <div className="space-y-8">
+            <ProfileReviews />
+            <ProfileAbout />
+            <ProfileServiceArea />
+          </div>
+          <div className="hidden lg:block lg:sticky lg:top-8 lg:max-w-sm">
+            <ProfileQuickBooking />
+          </div>
+        </div>
+
+        <div className="lg:hidden">
+          <ProfileQuickBooking />
+        </div>
       </div>
     </section>
   );
