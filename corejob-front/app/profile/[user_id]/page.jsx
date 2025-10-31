@@ -19,7 +19,7 @@ const mockProfile = {
   completion: 98,
   responseTime: "Responde en 2 horas",
   memberSince: "Miembro desde 2019",
-  jobsCompleted: "342 trabajos completados",
+  jobsCompleted: "343 trabajos completados",
   location: "Madrid Centro, España",
   priceRange: "€25-85/hora",
   services: ["Instalaciones", "Reparaciones", "Mantenimiento"],
