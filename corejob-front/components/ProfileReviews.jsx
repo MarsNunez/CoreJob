@@ -9,7 +9,7 @@ const mockReviews = [
     avatar:
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=120&h=120&q=80",
     rating: 5,
-    date: "14 de marzo de 2024",
+    date: "14 de marzo de 2025",
     service: "Reparación de Fugas",
     comment:
       "Excelente servicio. Carlos llegó puntual y solucionó la fuga en mi cocina muy rápidamente. Muy profesional y limpio en su trabajo. Lo recomiendo sin dudas.",
@@ -74,7 +74,14 @@ const ratingSummary = {
   ],
 };
 
-const ratingFilters = ["Todas", "5 estrellas", "4 estrellas", "3 estrellas", "2 estrellas", "1 estrella"];
+const ratingFilters = [
+  "Todas",
+  "5 estrellas",
+  "4 estrellas",
+  "3 estrellas",
+  "2 estrellas",
+  "1 estrella",
+];
 
 export default function ProfileReviews() {
   const [filter, setFilter] = useState("Todas");
@@ -124,9 +131,13 @@ export default function ProfileReviews() {
             const widthPercent = Math.min((item.count / 89) * 100, 100);
 
             return (
-              <div key={item.rating} className="flex items-center gap-3 text-sm text-slate-200">
+              <div
+                key={item.rating}
+                className="flex items-center gap-3 text-sm text-slate-200"
+              >
                 <span className="w-10 text-right">
-                  {item.rating} <i className="fa-solid fa-star text-amber-400"></i>
+                  {item.rating}{" "}
+                  <i className="fa-solid fa-star text-amber-400"></i>
                 </span>
                 <div className="h-2 flex-1 rounded-full bg-white/10">
                   <div
@@ -134,7 +145,9 @@ export default function ProfileReviews() {
                     style={{ width: `${widthPercent}%` }}
                   ></div>
                 </div>
-                <span className="w-8 text-right text-slate-400">{item.count}</span>
+                <span className="w-8 text-right text-slate-400">
+                  {item.count}
+                </span>
               </div>
             );
           })}
@@ -186,7 +199,9 @@ export default function ProfileReviews() {
                         ></i>
                       ))}
                     </div>
-                    <span className="text-sm text-slate-400">{review.date}</span>
+                    <span className="text-sm text-slate-400">
+                      {review.date}
+                    </span>
                   </div>
                   <p className="text-sm text-emerald-200">{review.service}</p>
                 </div>
@@ -213,9 +228,13 @@ export default function ProfileReviews() {
                 <div className="flex items-center gap-2 text-emerald-200">
                   <i className="fa-regular fa-message"></i>
                   <span className="font-semibold">{review.reply.author}</span>
-                  <span className="text-xs text-slate-400">{review.reply.date}</span>
+                  <span className="text-xs text-slate-400">
+                    {review.reply.date}
+                  </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-200">{review.reply.message}</p>
+                <p className="mt-2 text-sm text-slate-200">
+                  {review.reply.message}
+                </p>
               </div>
             ) : null}
 
