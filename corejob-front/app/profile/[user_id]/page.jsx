@@ -18,7 +18,7 @@ const mockProfile = {
   reviews: 127,
   completion: 98,
   responseTime: "Responde en 2 horas",
-  memberSince: "Miembro desde 2019",
+  memberSince: "Miembro desde 2018",
   jobsCompleted: "346 trabajos completados",
   location: "Madrid Centro, España",
   priceRange: "€25-85/hora",
