@@ -86,31 +86,18 @@ export default function RegisterPage() {
               />
             </label>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                Teléfono
-                <input
-                  name="phone"
-                  type="tel"
-                  className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  value={form.phone}
-                  onChange={handleChange}
-                />
-              </label>
-
-              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                ¿Cómo usarás CoreJob?
-                <select
-                  name="role"
-                  className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  value={form.role}
-                  onChange={handleChange}
-                >
-                  <option value="client">Contratar servicios</option>
-                  <option value="provider">Ofrecer mis servicios</option>
-                </select>
-              </label>
-            </div>
+            <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+              ¿Cómo usarás CoreJob?
+              <select
+                name="role"
+                className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                value={form.role}
+                onChange={handleChange}
+              >
+                <option value="client">Contratar servicios</option>
+                <option value="provider">Ofrecer mis servicios</option>
+              </select>
+            </label>
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">

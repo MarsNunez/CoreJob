@@ -32,9 +32,9 @@ router.get("/:id", async (req, res) => {
 // CREATE NEW USER
 router.post("/", async (req, res) => {
   try {
-    const { email, password, full_name, phone, role } = req.body;
+    const { email, password, full_name } = req.body;
 
-    if (!email || !password || !full_name || !phone || !role) {
+    if (!email || !password || !full_name) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 

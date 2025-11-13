@@ -22,13 +22,12 @@ const UserSchema = new Schema(
     },
     phone: {
       type: String,
-      required: true,
       trim: true,
     },
     role: {
       type: String,
-      required: true,
       enum: ["client", "provider"],
+      default: "client",
     },
     is_verified: {
       type: Boolean,
