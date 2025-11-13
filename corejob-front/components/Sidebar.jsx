@@ -184,28 +184,30 @@ export default function Sidebar() {
           <div
             className={
               collapsed
-                ? "mt-3 flex justify-center"
+                ? "mt-3 flex flex-col items-center gap-2"
                 : "grid grid-cols-5 text-center gap-x-2 mt-3"
             }
           >
-            <div
+            <Link
+              href="/register"
               className={`${
-                !collapsed ? "col-span-3" : "px-3 py-3"
-              } rounded-md bg-white text-black py-1 flex items-center justify-center`}
+                !collapsed ? "col-span-3" : "px-3 py-3 w-full"
+              } rounded-md bg-white text-black py-1 flex items-center justify-center transition hover:bg-white/80`}
             >
               {collapsed ? (
-                <i className="fa-solid fa-right-to-bracket"></i>
+                <i className="fa-solid fa-user-plus"></i>
               ) : (
                 "Register"
               )}
-            </div>
-            <div
-              className={`col-span-2 border rounded-md py-1 ${
-                collapsed && "hidden"
-              }`}
+            </Link>
+            <Link
+              href="/login"
+              className={`${
+                !collapsed ? "col-span-2" : "px-3 py-3 w-full"
+              } border rounded-md py-1 flex items-center justify-center text-white transition hover:bg-white/10`}
             >
-              Login
-            </div>
+              {collapsed ? <i className="fa-solid fa-right-to-bracket"></i> : "Login"}
+            </Link>
           </div>
         ) : (
           <NavItem
