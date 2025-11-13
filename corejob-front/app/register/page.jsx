@@ -45,6 +45,12 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex w-full flex-col justify-center bg-[#090f1a] px-8 py-12 md:w-1/2 md:px-16">
+          <Link
+            href="/"
+            className="mb-6 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white hover:bg-white/10"
+          >
+            <i className="fa-solid fa-arrow-left"></i>
+          </Link>
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300/80">
               Comienza aquí
