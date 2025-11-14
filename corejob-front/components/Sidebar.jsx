@@ -3,54 +3,37 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { clearAuthSession, getCurrentUser, getToken } from "../lib/api.js";
 
-export default function Sidebar() {
+export default function () {
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthed, setIsAuthed] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [roleLabel, setRoleLabel] = useState("");
 
-  //   useEffect(() => {
-  //     if (typeof window !== "undefined") {
-  //       const token = localStorage.getItem("authToken");
-  //       setIsAuthed(!!token);
-  //       setCollapsed(localStorage.getItem("sidebarCollapsed") === "1");
-  //       try {
-  //         const raw = localStorage.getItem("staffProfile");
-  //         if (raw) {
-  //           const prof = JSON.parse(raw);
-  //           const role = String(prof?.role || "").toLowerCase();
-  //           const map = {
-  //             admin: "Admin",
-  //             secretary: "Secretary",
-  //             teacher: "Teacher",
-  //             student: "Student",
-  //           };
-  //           setRoleLabel(map[role] || "");
-  //         } else {
-  //           setRoleLabel("");
-  //         }
-  //       } catch (_) {
-  //         setRoleLabel("");
-  //       }
-  //     }
-  //   }, [pathname]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setCollapsed(localStorage.getItem("Collapsed") === "1");
 
-  //   const logout = () => {
-  //     if (typeof window !== "undefined") {
-  //       localStorage.removeItem("authToken");
-  //       localStorage.removeItem("staffProfile");
-  //     }
-  //     setIsAuthed(false);
-  //     router.push("/login");
-  //   };
+    const token = getToken();
+    const user = getCurrentUser();
+    setIsAuthed(!!token && !!user);
+    setRoleLabel(user?.role ? user.role : "");
+  }, [pathname]);
+
+  const logout = () => {
+    clearAuthSession();
+    setIsAuthed(false);
+    setRoleLabel("");
+    router.push("/login");
+  };
 
   const toggleCollapsed = () => {
     setCollapsed((c) => {
       const next = !c;
       if (typeof window !== "undefined") {
-        localStorage.setItem("sidebarCollapsed", next ? "1" : "0");
+        localStorage.setItem("Collapsed", next ? "1" : "0");
       }
       return next;
     });
@@ -206,16 +189,29 @@ export default function Sidebar() {
                 !collapsed ? "col-span-2" : "px-3 py-3 w-full"
               } border rounded-md py-1 flex items-center justify-center text-white transition hover:bg-white/10`}
             >
-              {collapsed ? <i className="fa-solid fa-right-to-bracket"></i> : "Login"}
+              {collapsed ? (
+                <i className="fa-solid fa-right-to-bracket"></i>
+              ) : (
+                "Login"
+              )}
             </Link>
           </div>
         ) : (
-          <NavItem
+          <button
             onClick={logout}
-            icon="fa-solid fa-right-from-bracket"
-            label="Logout"
-            className="text-red-500 cursor-pointer "
-          />
+            className={`mt-3 flex items-center justify-center rounded-md border border-red-500/30 px-3 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10 ${
+              collapsed ? "w-full" : ""
+            }`}
+          >
+            {collapsed ? (
+              <i className="fa-solid fa-right-from-bracket"></i>
+            ) : (
+              <div>
+                <i className="fa-solid fa-right-from-bracket mr-2 hidden md:inline-block"></i>
+                Cerrar sesión
+              </div>
+            )}
+          </button>
         )}
       </nav>
     </aside>

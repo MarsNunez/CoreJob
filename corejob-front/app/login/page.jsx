@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { fetchJSON, setAuthSession } from "../../lib/api.js";
 
 const initialState = {
   email: "",
@@ -11,6 +13,9 @@ const initialState = {
 
 export default function LoginPage() {
   const [form, setForm] = useState(initialState);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -20,9 +25,26 @@ export default function LoginPage() {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Login data", form);
+    setError("");
+    setLoading(true);
+    try {
+      const data = await fetchJSON("/users/login", {
+        method: "POST",
+        data: {
+          email: form.email,
+          password: form.password,
+        },
+        suppressRedirect: true,
+      });
+      setAuthSession(data.token, data.user);
+      router.push("/");
+    } catch (err) {
+      setError(err.message || "No se pudo iniciar sesión");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,11 +130,18 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(6,182,212,0.35)] transition hover:opacity-90"
+              disabled={loading}
+              className="rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(6,182,212,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Ingresar
+              {loading ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
+
+          {error && (
+            <p className="mt-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+              {error}
+            </p>
+          )}
 
           <p className="mt-6 text-center text-sm text-slate-300">
             ¿Aún no tienes cuenta?{" "}

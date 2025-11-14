@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { fetchJSON, setAuthSession } from "../../lib/api.js";
 
 const initialState = {
   fullName: "",
@@ -14,15 +16,13 @@ const initialState = {
 
 export default function RegisterPage() {
   const [form, setForm] = useState(initialState);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    console.log("Register data", form);
   };
 
   return (
@@ -61,7 +61,38 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form className="mt-8 flex flex-col gap-5" onSubmit={handleSubmit}>
+          <form
+            className="mt-8 flex flex-col gap-5"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              setError("");
+              if (form.password !== form.confirmPassword) {
+                setError("Las contraseñas no coinciden");
+                return;
+              }
+              setLoading(true);
+              try {
+                const payload = {
+                  full_name: form.fullName,
+                  email: form.email,
+                  phone: form.phone,
+                  role: form.role,
+                  password: form.password,
+                };
+                const data = await fetchJSON("/users", {
+                  method: "POST",
+                  data: payload,
+                  suppressRedirect: true,
+                });
+                setAuthSession(data.token, data.user);
+                router.push("/");
+              } catch (err) {
+                setError(err.message || "No se pudo registrar");
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
             <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
               Nombre completo
               <input
@@ -127,11 +158,18 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(6,182,212,0.35)] transition hover:opacity-90"
+              disabled={loading}
+              className="rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(6,182,212,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Crear cuenta
+              {loading ? "Creando cuenta..." : "Crear cuenta"}
             </button>
           </form>
+
+          {error && (
+            <p className="mt-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+              {error}
+            </p>
+          )}
 
           <p className="mt-6 text-center text-sm text-slate-300">
             ¿Ya tienes cuenta?{" "}
