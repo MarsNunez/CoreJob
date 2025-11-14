@@ -32,6 +32,12 @@ const ProfileSchema = new Schema(
       default: 0,
       min: 0,
     },
+    categories: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Category",
+      },
+    ],
   },
   {
     timestamps: true,

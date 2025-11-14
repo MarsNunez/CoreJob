@@ -1,8 +1,27 @@
 import express from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { UserModel } from "../models/User.js";
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || "devsecret";
+
+const signToken = (user) =>
+  jwt.sign(
+    {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+    },
+    JWT_SECRET,
+    { expiresIn: "2d" }
+  );
+
+const sanitizeUser = (user) => {
+  const userObj = user.toObject ? user.toObject() : { ...user };
+  delete userObj.password;
+  return userObj;
+};
 
 // GET ALL USERS
 router.get("/", async (req, res) => {
@@ -11,6 +30,22 @@ router.get("/", async (req, res) => {
     res.status(200).json(users);
   } catch (e) {
     res.status(500).json({ message: "Error fetching users", error: e.message });
+  }
+});
+
+// CHECK EMAIL AVAILABILITY
+router.get("/check", async (req, res) => {
+  try {
+    const email = String(req.query.email || "").trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    const exists = await UserModel.exists({ email });
+    return res.json({ exists: !!exists });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error checking email", error: error.message });
   }
 });
 
@@ -48,7 +83,10 @@ router.post("/", async (req, res) => {
     const user = new UserModel({ ...req.body, password: hashedPassword });
     await user.save();
 
-    res.status(201).json(user);
+    const userObj = sanitizeUser(user);
+    const token = signToken(user);
+
+    res.status(201).json({ user: userObj, token });
   } catch (error) {
     if (error?.code === 11000) {
       return res.status(409).json({ message: "Email already exists" });
@@ -100,6 +138,36 @@ router.delete("/:id", async (req, res) => {
     res
       .status(500)
       .json({ message: "Error deleting user", error: error.message });
+  }
+});
+
+// LOGIN USER
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = signToken(user);
+    const userObj = sanitizeUser(user);
+
+    res.json({ user: userObj, token });
+  } catch (error) {
+    res.status(500).json({ message: "Error logging in", error: error.message });
   }
 });
 
