@@ -92,10 +92,7 @@ export default function RegisterPage() {
         return false;
       }
 
-      if (
-        form.email.trim() !== emailCheck.email ||
-        !emailCheck.available
-      ) {
+      if (form.email.trim() !== emailCheck.email || !emailCheck.available) {
         try {
           const result = await fetchJSON("/users/check", {
             method: "GET",
@@ -121,21 +118,6 @@ export default function RegisterPage() {
 
       if (form.password !== form.confirmPassword) {
         setError("Las contraseñas no coinciden");
-        return false;
-      }
-    }
-
-    if (currentStep === 1 && isProvider) {
-      if (!form.phone.trim()) {
-        setError("Ingresa un teléfono de contacto");
-        return false;
-      }
-      if (!form.location_country.trim()) {
-        setError("Ingresa tu país");
-        return false;
-      }
-      if (!form.location_city.trim()) {
-        setError("Ingresa tu ciudad");
         return false;
       }
     }
@@ -228,11 +210,12 @@ export default function RegisterPage() {
               Crece con CoreJob
             </p>
             <h2 className="text-3xl font-bold leading-tight text-white">
-              Conecta con clientes, comparte tus servicios y haz crecer tu negocio.
+              Conecta con clientes, comparte tus servicios y haz crecer tu
+              negocio.
             </h2>
             <p className="text-sm text-white/70">
-              Regístrate gratis para empezar a recibir solicitudes y construir tu
-              portafolio profesional.
+              Regístrate gratis para empezar a recibir solicitudes y construir
+              tu portafolio profesional.
             </p>
           </div>
         </div>
@@ -247,7 +230,9 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300/80">
-              {isProvider ? `Paso ${step + 1} de ${totalSteps}` : "Comienza aquí"}
+              {isProvider
+                ? `Paso ${step + 1} de ${totalSteps}`
+                : "Comienza aquí"}
             </p>
             <h1 className="text-3xl font-bold">Crea tu cuenta</h1>
             <p className="text-sm text-slate-300">
@@ -381,7 +366,9 @@ export default function RegisterPage() {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {categories.map((category) => {
-                          const active = selectedCategories.includes(category._id);
+                          const active = selectedCategories.includes(
+                            category._id
+                          );
                           return (
                             <button
                               key={category._id}
@@ -419,7 +406,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={goNext}
-                  className="rounded-2xl border border-emerald-500/40 px-5 py-2 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-500/10"
+                  className="rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-8 py-3 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(6,182,212,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   Siguiente
                 </button>
@@ -436,7 +423,7 @@ export default function RegisterPage() {
           </form>
 
           {error && (
-            <p className="mt-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+            <p className="mt-4 rounded-2xl border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-sm text-blue-200">
               {error}
             </p>
           )}
