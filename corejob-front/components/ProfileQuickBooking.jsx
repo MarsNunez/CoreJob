@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 
-const mockServices = [
+const DEFAULT_SERVICES = [
   { id: "rep-fugas", label: "Reparación de fugas" },
   { id: "inst-banios", label: "Instalación de baños" },
   { id: "calefaccion", label: "Calefacción" },
   { id: "mantenimiento", label: "Mantenimiento preventivo" },
-  { id: "emergencias", label: "Fontanería de emergencia" },
+  { id: "emergencias", label: "Servicio de emergencia" },
 ];
 
 const urgencyOptions = [
@@ -36,11 +36,23 @@ const timeSlots = [
   "18:00 - 20:00",
 ];
 
-export default function ProfileQuickBooking() {
+export default function ProfileQuickBooking({
+  serviceOptions = [],
+  contactPhone,
+  locationLabel,
+}) {
   const [serviceId, setServiceId] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [urgencyId, setUrgencyId] = useState("normal");
+
+  const availableServices =
+    serviceOptions.length > 0 ? serviceOptions : DEFAULT_SERVICES;
+  const safeServiceId = availableServices.some(
+    (service) => service.id === serviceId
+  )
+    ? serviceId
+    : "";
 
   const selectedUrgency = useMemo(
     () => urgencyOptions.find((option) => option.id === urgencyId),
@@ -69,16 +81,18 @@ export default function ProfileQuickBooking() {
           <div className="relative">
             <select
               id="quick-service"
-              value={serviceId}
+              value={safeServiceId}
               onChange={(event) => setServiceId(event.target.value)}
               className={`w-full appearance-none rounded-2xl border border-white/15 bg-[#09131d] px-4 py-3 pr-10 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/40 ${
-                serviceId ? "text-white" : "text-slate-400"
+                safeServiceId ? "text-white" : "text-slate-400"
               }`}
             >
               <option value="" disabled>
-                Elige un servicio
+                {availableServices.length
+                  ? "Elige un servicio"
+                  : "Aún no hay servicios disponibles"}
               </option>
-              {mockServices.map((service) => (
+              {availableServices.map((service) => (
                 <option key={service.id} value={service.id}>
                   {service.label}
                 </option>
@@ -86,6 +100,11 @@ export default function ProfileQuickBooking() {
             </select>
             <i className="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
           </div>
+          {serviceOptions.length === 0 && (
+            <p className="text-xs text-slate-400">
+              Crea servicios para mostrarlos en esta lista.
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -156,6 +175,10 @@ export default function ProfileQuickBooking() {
             </select>
             <i className="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
           </div>
+          <p className="text-xs text-slate-400">
+            {selectedUrgency?.helper ||
+              "Elige la urgencia para ajustar la disponibilidad."}
+          </p>
         </div>
 
         <button
@@ -181,6 +204,18 @@ export default function ProfileQuickBooking() {
             <i className="fa-solid fa-phone"></i>
             Llamar Directamente
           </button>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-[#09131d] px-4 py-3 text-sm text-slate-300">
+          <p className="font-semibold text-white">Contacto directo</p>
+          <p className="mt-1 text-base text-emerald-200">
+            {contactPhone || "Agrega un número para que puedan llamarte"}
+          </p>
+          {locationLabel ? (
+            <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">
+              {locationLabel}
+            </p>
+          ) : null}
         </div>
       </form>
     </aside>

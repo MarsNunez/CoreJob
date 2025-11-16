@@ -1,12 +1,34 @@
+const FALLBACK_AVATAR =
+  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=400&q=80";
+
 export default function ProfileHeader({ profile }) {
   if (!profile) return null;
+
+  const avatar = profile.avatar || FALLBACK_AVATAR;
+  const services =
+    Array.isArray(profile.services) && profile.services.length > 0
+      ? profile.services.filter(Boolean)
+      : [];
+  const rating =
+    typeof profile.rating === "number" && !Number.isNaN(profile.rating)
+      ? profile.rating
+      : 0;
+  const reviews = profile.reviews ?? 0;
+  const completion = Math.min(100, profile.completion ?? 0);
+  const location = profile.location || "Ubicación no disponible";
+  const responseTime =
+    profile.responseTime || "Responde en menos de 24 horas";
+  const memberSince = profile.memberSince || "Miembro de CoreJob";
+  const jobsCompleted =
+    profile.jobsCompleted || "Aún no registra trabajos completados";
+  const priceRange = profile.priceRange || "Tarifa a coordinar";
 
   return (
     <article className="flex flex-col gap-6 rounded-[32px] border border-white/10 bg-[#0b1621] p-6 shadow-[0_25px_55px_rgba(0,0,0,0.45)] md:flex-row md:items-center md:justify-between md:gap-10">
       <div className="flex flex-1 flex-col gap-5 md:flex-row md:items-center">
         <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-[#0f2c25]">
           <img
-            src={profile.avatar}
+            src={avatar}
             alt={profile.name}
             className="h-full w-full object-cover"
           />
@@ -42,54 +64,56 @@ export default function ProfileHeader({ profile }) {
                 <i
                   key={index}
                   className={`fa-solid ${
-                    index < Math.round(profile.rating)
+                    index < Math.round(rating)
                       ? "fa-star"
                       : "fa-star-half-stroke"
                   }`}
                 ></i>
               ))}
             </span>
-            <span className="text-base font-medium text-white">
-              {profile.rating}
-            </span>
-            <span className="text-sm text-slate-400">
-              ({profile.reviews} reseñas)
-            </span>
+            <span className="text-base font-medium text-white">{rating}</span>
+            <span className="text-sm text-slate-400">({reviews} reseñas)</span>
             <span className="inline-flex items-center gap-2 text-emerald-200">
               <i className="fa-solid fa-circle-check"></i>
-              {profile.completion}% completado
+              {completion}% completado
             </span>
             <span className="inline-flex items-center gap-2 text-slate-300">
               <i className="fa-solid fa-location-dot"></i>
-              {profile.location}
+              {location}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-400">
             <span className="inline-flex items-center gap-2">
               <i className="fa-regular fa-clock"></i>
-              {profile.responseTime}
+              {responseTime}
             </span>
             <span className="inline-flex items-center gap-2">
               <i className="fa-regular fa-calendar"></i>
-              {profile.memberSince}
+              {memberSince}
             </span>
             <span className="inline-flex items-center gap-2">
               <i className="fa-solid fa-briefcase"></i>
-              {profile.jobsCompleted}
+              {jobsCompleted}
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs text-emerald-200">
-            {profile.services.map((service) => (
-              <span
-                key={service}
-                className="rounded-full border border-emerald-500/40 px-3 py-1"
-              >
-                {service}
-              </span>
-            ))}
-          </div>
+          {services.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-emerald-200">
+              {services.map((service) => (
+                <span
+                  key={service}
+                  className="rounded-full border border-emerald-500/40 px-3 py-1"
+                >
+                  {service}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400">
+              Agrega especialidades para mostrarlas en tu perfil.
+            </p>
+          )}
         </div>
       </div>
 
@@ -109,7 +133,7 @@ export default function ProfileHeader({ profile }) {
           </button>
         </div>
         <div className="rounded-2xl border border-white/10 bg-[#0f2333] px-5 py-4 text-center">
-          <p className="text-base font-semibold text-white">{profile.priceRange}</p>
+          <p className="text-base font-semibold text-white">{priceRange}</p>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
             Rango de precios
           </p>
