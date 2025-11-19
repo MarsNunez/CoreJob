@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1485579149621-3123dd979885?q=80&w=800&auto=format&fit=crop";
@@ -25,17 +25,37 @@ export default function Card({
   durationValue = "1 hora",
   availabilityLabel = "Disponibilidad:",
   availabilityValue = "Disponible esta semana",
+  gallery = [],
   children,
 }) {
   const [openInfo, setOpenInfo] = useState(false);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const galleryImages = useMemo(() => {
+    if (Array.isArray(gallery)) {
+      const filtered = gallery.map((url) => url?.trim()).filter(Boolean);
+      if (filtered.length) return filtered;
+    }
+    return imageSrc ? [imageSrc] : [DEFAULT_IMAGE];
+  }, [gallery, imageSrc]);
+
+  const openModal = () => {
+    setSlideIndex(0);
+    setOpenInfo(true);
+  };
+
+  const goPrev = () =>
+    setSlideIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  const goNext = () =>
+    setSlideIndex((prev) => (prev + 1) % galleryImages.length);
+
   const isHorizontal = layout === "horizontal";
   const containerClasses = isHorizontal
     ? "flex w-full flex-col md:flex-row max-w-full"
     : "flex flex-col max-w-[18rem]";
 
   const mediaClasses = isHorizontal
-    ? "relative h-48 w-full md:h-auto md:w-64 md:flex-shrink-0"
-    : "relative h-44 w-full";
+    ? "relative h-48 w-full cursor-pointer md:h-auto md:w-64 md:flex-shrink-0"
+    : "relative h-44 w-full cursor-pointer";
 
   const contentWrapperClasses = isHorizontal
     ? "flex-1 space-y-4 px-6 py-6"
@@ -46,9 +66,9 @@ export default function Card({
     <article
       className={`${containerClasses} overflow-hidden rounded-xl bg-[#111c27] text-white shadow-[0_20px_45px_rgba(0,0,0,0.4)]`}
     >
-      <div className={mediaClasses}>
+      <div className={mediaClasses} onClick={openModal}>
         <img
-          src={imageSrc}
+          src={galleryImages[0] || imageSrc}
           alt={title}
           className="h-full w-full object-cover"
         />
@@ -110,7 +130,7 @@ export default function Card({
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
-              <button onClick={() => setOpenInfo(true)} className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-white transition hover:bg-white/10">
+              <button onClick={openModal} className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-white transition hover:bg-white/10">
                 <i className="fa-regular fa-circle-question"></i>
                 Info
               </button>
@@ -145,7 +165,46 @@ export default function Card({
           </button>
 
           <div className="relative aspect-[16/10] w-full bg-black/30">
-            <img src={imageSrc} alt={title} className="absolute inset-0 h-full w-full object-cover" />
+            {galleryImages.map((src, index) => (
+              <img
+                key={src + index}
+                src={src}
+                alt={`${title} ${index + 1}`}
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+                  slideIndex === index ? "opacity-100" : "opacity-0"
+                }`}
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            ))}
+
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  onClick={goPrev}
+                  aria-label="Imagen anterior"
+                  className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white shadow hover:bg-black/60"
+                >
+                  <i className="fa-solid fa-chevron-left"></i>
+                </button>
+                <button
+                  onClick={goNext}
+                  aria-label="Imagen siguiente"
+                  className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white shadow hover:bg-black/60"
+                >
+                  <i className="fa-solid fa-chevron-right"></i>
+                </button>
+                <div className="pointer-events-none absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2">
+                  {galleryImages.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        slideIndex === i ? "bg-white" : "bg-white/40"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="border-t border-white/10 p-5">

@@ -17,6 +17,7 @@ export default function ProfileServices({ services = [] }) {
               key={s.id}
               layout="horizontal"
               imageSrc={s.imageSrc}
+              gallery={s.gallery}
               badgeLeft={s.category}
               badgeRight={s.distance}
               title={s.title}

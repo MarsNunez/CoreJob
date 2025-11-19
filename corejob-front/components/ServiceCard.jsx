@@ -79,17 +79,10 @@ export default function ServiceCard({
         <div className="flex flex-wrap gap-2 md:gap-3">
           <Link
             href={`/myservices/manage/${id}`}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10 md:rounded-2xl md:px-4 md:text-sm"
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-[0_12px_25px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500 md:rounded-2xl md:px-4 md:text-sm"
           >
             <i className="fa-solid fa-pen-to-square text-[10px]"></i>
             Editar
-          </Link>
-            <Link
-            href={`/myservices/manage/${id}`}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-[0_12px_25px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500 md:rounded-2xl md:px-4 md:text-sm"
-          >
-            <i className="fa-solid fa-sliders text-[10px]"></i>
-            Gestionar
           </Link>
         </div>
       </footer>

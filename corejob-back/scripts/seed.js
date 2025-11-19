@@ -94,7 +94,7 @@ const seedDatabase = async () => {
       is_verified: true,
     },
     {
-      full_name: "Marcelo Torres",
+      full_name: "Mars Lock",
       email: "marcelo@corejob.com",
       password,
       role: "client",

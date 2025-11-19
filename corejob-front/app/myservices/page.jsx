@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import ServiceCard from "@/components/ServiceCard.jsx";
 import { fetchJSON, getCurrentUser } from "@/lib/api";
@@ -99,10 +100,13 @@ export default function MyServices() {
               Actualiza precios, disponibilidad y revisa el rendimiento.
             </p>
           </div>
-          <button className="inline-flex items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600">
+          <Link
+            href="/myservices/new"
+            className="inline-flex items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
+          >
             <i className="fa-solid fa-plus text-xs"></i>
             Nuevo servicio
-          </button>
+          </Link>
         </header>
 
         {loading ? (

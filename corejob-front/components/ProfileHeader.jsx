@@ -24,8 +24,8 @@ export default function ProfileHeader({ profile }) {
   const priceRange = profile.priceRange || "Tarifa a coordinar";
 
   return (
-    <article className="flex flex-col gap-6 rounded-[32px] border border-white/10 bg-[#0b1621] p-6 shadow-[0_25px_55px_rgba(0,0,0,0.45)] md:flex-row md:items-center md:justify-between md:gap-10">
-      <div className="flex flex-1 flex-col gap-5 md:flex-row md:items-center">
+    <article className="flex w-full flex-col gap-6 rounded-[32px] border border-white/10 bg-[#0b1621] p-5 shadow-[0_25px_55px_rgba(0,0,0,0.45)] sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+      <div className="flex flex-1 min-w-0 flex-col gap-5 lg:flex-row lg:items-center">
         <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-[#0f2c25]">
           <img
             src={avatar}
@@ -35,9 +35,11 @@ export default function ProfileHeader({ profile }) {
           <span className="absolute bottom-2 right-1 h-4 w-4 rounded-full border-4 border-[#0b1621] bg-emerald-500"></span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 text-white">
           <div>
-            <h1 className="text-2xl font-semibold sm:text-3xl">{profile.name}</h1>
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
+              {profile.name}
+            </h1>
             <p className="text-sm text-emerald-100 sm:text-base">
               {profile.title}
             </p>
@@ -117,20 +119,26 @@ export default function ProfileHeader({ profile }) {
         </div>
       </div>
 
-      <div className="flex w-full max-w-sm flex-col gap-4">
-        <button className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600">
+      <div className="flex w-full flex-col gap-4 sm:flex-row sm:flex-wrap lg:max-w-sm lg:flex-col">
+        <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600">
           <i className="fa-regular fa-calendar"></i>
           Reservar ahora
         </button>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <button className="flex items-center justify-center gap-2 rounded-2xl border border-white/15 px-4 py-3 text-white transition hover:bg-white/10">
+        <div
+          className={`grid w-full gap-3 text-sm ${
+            profile.canEdit ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+          }`}
+        >
+          <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 px-4 py-3 text-white transition hover:bg-white/10">
             <i className="fa-regular fa-message"></i>
             Mensaje
           </button>
-          <button className="flex items-center justify-center gap-2 rounded-2xl border border-white/15 px-4 py-3 text-white transition hover:bg-white/10">
-            <i className="fa-regular fa-user-plus"></i>
-            Seguir
-          </button>
+          {profile.canEdit && (
+            <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/40 px-4 py-3 text-emerald-100 transition hover:bg-emerald-500/10">
+              <i className="fa-regular fa-pen-to-square"></i>
+              Editar
+            </button>
+          )}
         </div>
         <div className="rounded-2xl border border-white/10 bg-[#0f2333] px-5 py-4 text-center">
           <p className="text-base font-semibold text-white">{priceRange}</p>

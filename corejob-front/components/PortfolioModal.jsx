@@ -6,7 +6,7 @@ export default function PortfolioModal({ open, onClose, project }) {
   const images = useMemo(() => {
     if (!project) return [];
     if (Array.isArray(project.images) && project.images.length > 0) {
-      return project.images.slice(0, 4);
+      return project.images;
     }
     // Fallback to cover if no images array
     return project.cover ? [project.cover] : [];
@@ -118,4 +118,3 @@ export default function PortfolioModal({ open, onClose, project }) {
     </div>
   );
 }
-

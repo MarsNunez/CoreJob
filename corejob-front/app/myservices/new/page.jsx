@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { fetchJSON, getCurrentUser } from "@/lib/api";
 
@@ -16,7 +16,6 @@ const priceTypeOptions = [
   "por proyecto",
 ];
 
-const MAX_PHOTOS = 6;
 const initialForm = {
   title: "",
   description: "",
@@ -31,24 +30,20 @@ const initialForm = {
   is_active: true,
 };
 
-export default function ManageServiceView() {
-  const router = useRouter();
-  const { service_id: serviceId } = useParams();
-  const [currentUser] = useState(() => getCurrentUser());
-  const currentUserId = currentUser?._id ? String(currentUser._id) : "";
-  const [form, setForm] = useState(initialForm);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [photoInputs, setPhotoInputs] = useState([""]);
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [loadingService, setLoadingService] = useState(true);
-  const [catalogError, setCatalogError] = useState("");
-  const [pageError, setPageError] = useState("");
-  const [formError, setFormError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [serviceOwnerId, setServiceOwnerId] = useState("");
+const MAX_PHOTOS = 6;
+const emptyPhotoList = ["", "", ""];
 
-  const hasAccess = Boolean(currentUser?._id);
+export default function NewServicePage() {
+  const router = useRouter();
+  const [currentUser] = useState(() => getCurrentUser());
+  const [form, setForm] = useState(initialForm);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [photoInputs, setPhotoInputs] = useState(emptyPhotoList);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [catalogError, setCatalogError] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -69,72 +64,6 @@ export default function ManageServiceView() {
     loadCategories();
   }, []);
 
-  useEffect(() => {
-    if (!serviceId) return;
-    let active = true;
-
-    const loadService = async () => {
-      setLoadingService(true);
-      setPageError("");
-      try {
-        const data = await fetchJSON(`/services/${serviceId}`, {
-          suppressRedirect: true,
-        });
-
-        if (!active) return;
-        if (!data) {
-          setPageError("No se encontró el servicio solicitado.");
-          return;
-        }
-
-        const ownerId = String(data.user_id || "");
-        if (currentUserId && ownerId && ownerId !== currentUserId) {
-          setPageError("No tienes permiso para editar este servicio.");
-          return;
-        }
-
-        setServiceOwnerId(ownerId);
-        setForm({
-          title: data.title || "",
-          description: data.description || "",
-          price: data.price ?? "",
-          price_type: data.price_type || priceTypeOptions[0],
-          estimated_duration: data.estimated_duration || "",
-          location: data.location || "",
-          requirements: data.requirements || "",
-          materials_included: Boolean(data.materials_included),
-          discount_aplied: Boolean(data.discount_aplied),
-          discount_recurring:
-            data.discount_recurring === 0 || data.discount_recurring
-              ? String(data.discount_recurring)
-              : "",
-          is_active: data.is_active !== undefined ? Boolean(data.is_active) : true,
-        });
-
-        setSelectedCategories(
-          Array.isArray(data.categores_id)
-            ? data.categores_id.map((id) => String(id))
-            : []
-        );
-        setPhotoInputs(
-          Array.isArray(data.photos) && data.photos.length
-            ? data.photos.slice(0, MAX_PHOTOS)
-            : [""]
-        );
-      } catch (err) {
-        if (!active) return;
-        setPageError(err.message || "No se pudo cargar el servicio.");
-      } finally {
-        if (active) setLoadingService(false);
-      }
-    };
-
-    loadService();
-    return () => {
-      active = false;
-    };
-  }, [serviceId, currentUserId]);
-
   const handleFormChange = (event) => {
     const { name, value, type, checked } = event.target;
     setForm((prev) => ({
@@ -143,18 +72,10 @@ export default function ManageServiceView() {
     }));
   };
 
-  const toggleCategory = (categoryId) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((item) => item !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
-  const handlePhotoChange = (index, url) => {
+  const handlePhotoChange = (index, value) => {
     setPhotoInputs((prev) => {
       const next = [...prev];
-      next[index] = url;
+      next[index] = value;
       return next;
     });
   };
@@ -170,6 +91,16 @@ export default function ManageServiceView() {
     setPhotoInputs((prev) => prev.filter((_, idx) => idx !== index));
   };
 
+  const toggleCategory = (categoryId) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((item) => item !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const hasAccess = Boolean(currentUser?._id);
+
   const cleanedPhotos = useMemo(
     () =>
       photoInputs
@@ -178,36 +109,50 @@ export default function ManageServiceView() {
     [photoInputs]
   );
 
-  const validateForm = () => {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+
+    if (!hasAccess) {
+      setError("Debes iniciar sesión para crear un servicio.");
+      return;
+    }
+
     if (!form.title.trim()) {
-      setFormError("Ingresa un título para tu servicio.");
-      return false;
+      setError("Ingresa un título para tu servicio.");
+      return;
     }
+
     if (!form.description.trim()) {
-      setFormError("Describe tu servicio para que los clientes te conozcan.");
-      return false;
+      setError("Describe tu servicio para que los clientes te conozcan.");
+      return;
     }
+
     if (!form.location.trim()) {
-      setFormError("Indica la ubicación o zona de atención.");
-      return false;
+      setError("Indica la ubicación o zona de atención.");
+      return;
     }
+
     if (!form.estimated_duration.trim()) {
-      setFormError("Especifica una duración o rango estimado.");
-      return false;
+      setError("Especifica una duración o rango estimado.");
+      return;
     }
+
     if (!selectedCategories.length) {
-      setFormError("Selecciona al menos una categoría.");
-      return false;
+      setError("Selecciona al menos una categoría.");
+      return;
     }
+
     const rawPrice = String(form.price).trim();
     if (!rawPrice.length) {
-      setFormError("Ingresa un precio para tu servicio.");
-      return false;
+      setError("Ingresa un precio para tu servicio.");
+      return;
     }
+
     const priceValue = Number(rawPrice.replace(/,/g, "."));
     if (Number.isNaN(priceValue) || priceValue < 0) {
-      setFormError("Ingresa un precio válido.");
-      return false;
+      setError("Ingresa un precio válido.");
+      return;
     }
 
     const discountValue = form.discount_aplied
@@ -221,30 +166,12 @@ export default function ManageServiceView() {
         discountValue < 0 ||
         discountValue > 100)
     ) {
-      setFormError("El descuento debe estar entre 0 y 100.");
-      return false;
-    }
-
-    setFormError("");
-    return {
-      priceValue,
-      discountValue,
-    };
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!hasAccess) return;
-    if (!serviceId) {
-      setFormError("Servicio no válido.");
+      setError("El descuento debe estar entre 0 y 100.");
       return;
     }
-    const validation = validateForm();
-    if (!validation) return;
 
-    const { priceValue, discountValue } = validation;
     const payload = {
-      user_id: serviceOwnerId || currentUser._id,
+      user_id: currentUser._id,
       title: form.title.trim(),
       description: form.description.trim(),
       price_type: form.price_type,
@@ -260,18 +187,18 @@ export default function ManageServiceView() {
       photos: cleanedPhotos,
     };
 
-    setSaving(true);
+    setSubmitting(true);
     try {
-      await fetchJSON(`/services/${serviceId}`, {
-        method: "PUT",
+      await fetchJSON("/services", {
+        method: "POST",
         data: payload,
         suppressRedirect: true,
       });
       router.push("/myservices");
     } catch (err) {
-      setFormError(err.message || "No se pudo actualizar el servicio.");
+      setError(err.message || "No se pudo crear el servicio. Intenta más tarde.");
     } finally {
-      setSaving(false);
+      setSubmitting(false);
     }
   };
 
@@ -281,7 +208,7 @@ export default function ManageServiceView() {
         <div className="mx-auto flex max-w-xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center">
           <p className="text-lg font-semibold">Inicia sesión para continuar</p>
           <p className="text-sm text-slate-200">
-            Necesitas una cuenta para editar tus servicios.
+            Necesitas una cuenta para publicar nuevos servicios en CoreJob.
           </p>
           <Link
             href="/login"
@@ -290,35 +217,6 @@ export default function ManageServiceView() {
             <i className="fa-solid fa-arrow-right-to-bracket text-xs" />
             Ir al inicio de sesión
           </Link>
-        </div>
-      </section>
-    );
-  }
-
-  if (pageError) {
-    return (
-      <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">
-        <div className="mx-auto flex max-w-xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center">
-          <p className="text-lg font-semibold">No se pudo cargar el servicio</p>
-          <p className="text-sm text-slate-200">{pageError}</p>
-          <Link
-            href="/myservices"
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
-          >
-            <i className="fa-solid fa-arrow-left text-xs" />
-            Volver a mis servicios
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
-  if (loadingService) {
-    return (
-      <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">
-        <div className="mx-auto flex max-w-4xl flex-col gap-4 rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center">
-          <i className="fa-solid fa-circle-notch animate-spin text-2xl text-emerald-400" />
-          <p className="text-sm text-slate-300">Cargando información del servicio...</p>
         </div>
       </section>
     );
@@ -338,11 +236,13 @@ export default function ManageServiceView() {
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-200">
-              Editar servicio
+              Nuevo servicio
             </p>
-            <h1 className="text-3xl font-bold sm:text-4xl">{form.title || "Servicio"}</h1>
+            <h1 className="text-3xl font-bold sm:text-4xl">
+              Crea tu próxima oferta
+            </h1>
             <p className="text-sm text-emerald-100 sm:text-base">
-              Actualiza precios, categorías, fotos y disponibilidad para mantener tu servicio al día.
+              Describe tu trabajo, carga fotos inspiradoras y publica tu servicio en minutos.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -355,23 +255,23 @@ export default function ManageServiceView() {
             </button>
             <button
               type="submit"
-              form="edit-service-form"
-              disabled={saving}
+              form="new-service-form"
+              disabled={submitting}
               className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {saving ? "Guardando..." : "Guardar cambios"}
+              {submitting ? "Guardando..." : "Publicar servicio"}
             </button>
           </div>
         </header>
 
-        {formError && (
+        {error && (
           <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-            {formError}
+            {error}
           </div>
         )}
 
         <form
-          id="edit-service-form"
+          id="new-service-form"
           className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]"
           onSubmit={handleSubmit}
         >
@@ -546,7 +446,8 @@ export default function ManageServiceView() {
                     : "+ Añadir enlace de foto"}
                 </button>
                 <p className="text-xs text-slate-400">
-                  Puedes administrar hasta {MAX_PHOTOS} fotos por servicio.
+                  Puedes agregar hasta {MAX_PHOTOS} fotos. Más adelante
+                  podrás subirlas directamente.
                 </p>
               </div>
             </div>

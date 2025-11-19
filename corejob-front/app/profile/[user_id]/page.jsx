@@ -40,11 +40,17 @@ export default function ProfileView() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   useEffect(() => {
     let active = true;
     const storedUser = getCurrentUser();
-    const targetId = storedUser?._id || params?.user_id;
+    const routeUserId = params?.user_id;
+    const targetId = storedUser?._id || routeUserId;
+    const ownsProfile =
+      storedUser?._id &&
+      (!routeUserId || String(routeUserId) === String(storedUser._id));
+    setIsOwnProfile(Boolean(ownsProfile));
 
     if (!targetId) {
       setError("No se encontró un usuario activo para mostrar el perfil.");
@@ -136,9 +142,14 @@ export default function ProfileView() {
       .filter(Boolean);
   }, [profileData, categoriesMap]);
 
+  const activeServices = useMemo(
+    () => services.filter((service) => service.is_active !== false),
+    [services]
+  );
+
   const priceRange = useMemo(() => {
-    if (!services.length) return "Tarifa a coordinar";
-    const prices = services
+    if (!activeServices.length) return "Tarifa a coordinar";
+    const prices = activeServices
       .map((service) => Number(service.price))
       .filter((value) => !Number.isNaN(value));
     if (!prices.length) return "Tarifa a coordinar";
@@ -147,16 +158,19 @@ export default function ProfileView() {
     return min === max
       ? formatPrice(min)
       : `${formatPrice(min)} - ${formatPrice(max)}`;
-  }, [services]);
+  }, [activeServices]);
 
   const servicesCards = useMemo(() => {
-    if (!services.length) return [];
-    return services.map((service) => {
+    if (!activeServices.length) return [];
+    return activeServices.map((service) => {
       const firstCategoryId = service.categores_id?.[0];
       const categoryName = categoriesMap.get(String(firstCategoryId))?.name;
       return {
         id: service._id,
         imageSrc: service.photos?.[0] || FALLBACK_IMAGE,
+        gallery: Array.isArray(service.photos) && service.photos.length
+          ? service.photos
+          : [],
         category: categoryName || "Servicio",
         distance: service.price_type,
         title: service.title,
@@ -173,7 +187,7 @@ export default function ProfileView() {
           : "Temporalmente no disponible",
       };
     });
-  }, [services, categoriesMap, userData, profileData, reviews.length]);
+  }, [activeServices, categoriesMap, userData, profileData, reviews.length]);
 
   const portfolioProjects = useMemo(() => {
     if (!portfolio.length) return [];
@@ -261,6 +275,7 @@ export default function ProfileView() {
         profileCategories.length > 0
           ? profileCategories
           : servicesCards.map((service) => service.title),
+      canEdit: isOwnProfile,
     };
   }, [
     userData,
@@ -269,6 +284,7 @@ export default function ProfileView() {
     reviewsData.length,
     priceRange,
     servicesCards,
+    isOwnProfile,
   ]);
 
   const availabilityText = useMemo(() => {
@@ -313,12 +329,12 @@ export default function ProfileView() {
   }, [profileData, userData, availabilityText]);
 
   const quickBookingOptions = useMemo(() => {
-    if (!services.length) return [];
-    return services.map((service) => ({
+    if (!activeServices.length) return [];
+    return activeServices.map((service) => ({
       id: service._id,
       label: service.title,
     }));
-  }, [services]);
+  }, [activeServices]);
 
   if (loading) {
     return (
@@ -349,11 +365,11 @@ export default function ProfileView() {
   }
 
   return (
-    <section className="min-h-screen bg-[radial-gradient(circle_at_top,#09131d,#04070a)] px-4 py-10 text-white sm:px-8 lg:px-16">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+    <section className="min-h-screen bg-[radial-gradient(circle_at_top,#09131d,#04070a)] px-3 py-8 text-white sm:px-6 lg:px-16">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <Link
           href="/search"
-          className="inline-flex w-fit items-center gap-2 rounded-2xl border border-white/10 bg-[#0b1621] px-4 py-2 text-sm text-emerald-100 transition hover:bg-[#102132]"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-[#0b1621] px-4 py-2 text-sm text-emerald-100 transition hover:bg-[#102132] sm:w-fit sm:justify-start"
         >
           <i className="fa-solid fa-arrow-left text-xs"></i>
           Volver a resultados
