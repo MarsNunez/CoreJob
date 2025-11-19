@@ -74,7 +74,7 @@ const seedDatabase = async () => {
 
   const users = await UserModel.insertMany([
     {
-      full_name: "Carlos España",
+      full_name: "Carlos Lock",
       email: "carlos@corejob.com",
       password,
       role: "provider",
