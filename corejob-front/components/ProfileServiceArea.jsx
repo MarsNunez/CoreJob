@@ -7,7 +7,6 @@ export default function ProfileServiceArea({ location = {} }) {
     serviceRadius,
     transport,
     responseTime,
-    availability,
     emergency,
     mapEmbedUrl,
   } = location;
@@ -41,12 +40,6 @@ export default function ProfileServiceArea({ location = {} }) {
       label: "Respuesta promedio",
       title: responseTime || "Menos de 24 horas",
       subtitle: "Comparte tus tiempos habituales.",
-    },
-    {
-      icon: "fa-regular fa-calendar",
-      label: "Disponibilidad",
-      title: availability || "Agrega tu horario para mostrarlo aquí.",
-      subtitle: "",
     },
     {
       icon: "fa-solid fa-bolt",

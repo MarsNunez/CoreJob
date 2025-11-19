@@ -122,17 +122,6 @@ const seedDatabase = async () => {
       bio: "Fontanero certificado con 10 años de experiencia en reformas completas y emergencias.",
       profile_picture:
         "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=600&q=80",
-      availability_calendar: {
-        lunes: "09:00-18:00",
-        martes: "09:00-18:00",
-        miercoles: "09:00-18:00",
-        jueves: "09:00-18:00",
-        viernes: "09:00-17:00",
-        responseTime: "Responde en 2 horas",
-        map_url:
-          "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3038.011199217522!2d-3.707398484603539!3d40.416775979263154!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd42287c9c7ad359%3A0x4e725f0c60211472!2sPuerta%20del%20Sol%2C%20Madrid!5e0!3m2!1ses!2ses!4v1710000000000!5m2!1ses!2ses",
-        radius: "Hasta 25 km",
-      },
       rating_average: 4.8,
       jobs_completed: 180,
       categories: [categories[0]._id, categories[2]._id],
@@ -142,16 +131,6 @@ const seedDatabase = async () => {
       bio: "Electricista industrial y residencial especializada en automatización.",
       profile_picture:
         "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=600&q=80",
-      availability_calendar: {
-        lunes: "08:00-17:00",
-        martes: "08:00-17:00",
-        jueves: "08:00-17:00",
-        viernes: "08:00-15:00",
-        responseTime: "Responde el mismo día",
-        map_url:
-          "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2992.4775936010406!2d2.1685982154886073!3d41.38506397926453!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12a4a2f1b5b6375b%3A0x8a1dde2f3d806b51!2sPla%C3%A7a%20de%20Catalunya%2C%20Barcelona!5e0!3m2!1ses!2ses!4v1710000000000!5m2!1ses!2ses",
-        radius: "Hasta 15 km",
-      },
       rating_average: 4.6,
       jobs_completed: 95,
       categories: [categories[1]._id, categories[3]._id],

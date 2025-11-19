@@ -34,7 +34,8 @@ const initialForm = {
 export default function ManageServiceView() {
   const router = useRouter();
   const { service_id: serviceId } = useParams();
-  const [currentUser] = useState(() => getCurrentUser());
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const currentUserId = currentUser?._id ? String(currentUser._id) : "";
   const [form, setForm] = useState(initialForm);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -49,6 +50,16 @@ export default function ManageServiceView() {
   const [serviceOwnerId, setServiceOwnerId] = useState("");
 
   const hasAccess = Boolean(currentUser?._id);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (!user?._id) {
+      router.replace("/login");
+      return;
+    }
+    setCurrentUser(user);
+    setAuthChecked(true);
+  }, [router]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -129,6 +140,7 @@ export default function ManageServiceView() {
       }
     };
 
+    if (!currentUserId) return;
     loadService();
     return () => {
       active = false;
@@ -274,6 +286,17 @@ export default function ManageServiceView() {
       setSaving(false);
     }
   };
+
+  if (!authChecked && !hasAccess) {
+    return (
+      <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">
+        <div className="mx-auto flex max-w-xl flex-col gap-4 rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center">
+          <i className="fa-solid fa-circle-notch animate-spin text-2xl text-emerald-400" />
+          <p className="text-sm text-slate-200">Verificando sesión...</p>
+        </div>
+      </section>
+    );
+  }
 
   if (!hasAccess) {
     return (

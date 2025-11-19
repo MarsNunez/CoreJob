@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import ServiceCard from "@/components/ServiceCard.jsx";
 import { fetchJSON, getCurrentUser } from "@/lib/api";
@@ -19,18 +20,26 @@ const formatPrice = (value) => {
 };
 
 export default function MyServices() {
+  const router = useRouter();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    let active = true;
-    const currentUser = getCurrentUser();
-    if (!currentUser?._id) {
-      setError("Debes iniciar sesión para ver tus servicios.");
-      setLoading(false);
-      return undefined;
+    const user = getCurrentUser();
+    if (!user?._id) {
+      router.replace("/login");
+      return;
     }
+    setCurrentUserId(String(user._id));
+    setAuthChecked(true);
+  }, [router]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    let active = true;
 
     const loadServices = async () => {
       setLoading(true);
@@ -38,7 +47,7 @@ export default function MyServices() {
       try {
         const data = await fetchJSON("/services", { suppressRedirect: true });
         const filtered = data.filter(
-          (service) => String(service.user_id) === String(currentUser._id)
+          (service) => String(service.user_id) === String(currentUserId)
         );
         if (active) {
           setServices(filtered);
@@ -58,7 +67,7 @@ export default function MyServices() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [currentUserId]);
 
   const cards = useMemo(
     () =>
@@ -84,6 +93,17 @@ export default function MyServices() {
       })),
     [services]
   );
+
+  if (!authChecked && !currentUserId) {
+    return (
+      <section className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <i className="fa-solid fa-circle-notch animate-spin text-2xl text-emerald-400" />
+          <p className="text-sm text-slate-300">Verificando acceso...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">

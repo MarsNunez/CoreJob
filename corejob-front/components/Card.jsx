@@ -23,8 +23,6 @@ export default function Card({
   priceValue = "€20/hora",
   durationLabel = "Duración:",
   durationValue = "1 hora",
-  availabilityLabel = "Disponibilidad:",
-  availabilityValue = "Disponible esta semana",
   gallery = [],
   children,
 }) {
@@ -120,12 +118,6 @@ export default function Card({
               <div className="flex justify-between">
                 <span className="text-slate-400">{durationLabel}</span>
                 <span className="font-semibold">{durationValue}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">{availabilityLabel}</span>
-                <span className="font-semibold text-[#0d7a55]">
-                  {availabilityValue}
-                </span>
               </div>
             </div>
 
@@ -243,10 +235,6 @@ export default function Card({
               <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                 <span className="text-slate-400">{durationLabel}</span>
                 <span className="font-semibold">{durationValue}</span>
-              </div>
-              <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                <span className="text-slate-400">{availabilityLabel}</span>
-                <span className="font-semibold text-[#0d7a55]">{availabilityValue}</span>
               </div>
             </div>
           </div>

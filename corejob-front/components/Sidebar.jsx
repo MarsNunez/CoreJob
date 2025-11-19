@@ -11,6 +11,7 @@ export default function Sidebar() {
   const [isAuthed, setIsAuthed] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [roleLabel, setRoleLabel] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -18,6 +19,7 @@ export default function Sidebar() {
 
     const token = getToken();
     const user = getCurrentUser();
+    setCurrentUser(user || null);
     setIsAuthed(!!token && !!user);
     setRoleLabel(user?.role ? user.role : "");
   }, [pathname]);
@@ -141,16 +143,20 @@ export default function Sidebar() {
           icon="fa-solid fa-magnifying-glass"
           label="Buscar"
         />
-        <NavItem
-          href="/myservices"
-          icon="fa-solid fa-suitcase"
-          label="Mis servicios"
-        />
-        <NavItem
-          href="/profile/29381293823829"
-          icon="fa-solid fa-user"
-          label="Perfil"
-        />
+        {isAuthed && (
+          <NavItem
+            href="/myservices"
+            icon="fa-solid fa-suitcase"
+            label="Mis servicios"
+          />
+        )}
+        {isAuthed && currentUser?._id && (
+          <NavItem
+            href={`/profile/${currentUser._id}`}
+            icon="fa-solid fa-user"
+            label="Perfil"
+          />
+        )}
         {isAuthed && (
           <NavItem
             href="/controlPanel"

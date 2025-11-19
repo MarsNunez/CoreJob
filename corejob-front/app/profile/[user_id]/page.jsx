@@ -182,9 +182,6 @@ export default function ProfileView() {
         },
         price: formatPrice(service.price),
         duration: service.estimated_duration || "A coordinar",
-        availability: service.is_active
-          ? "Disponible"
-          : "Temporalmente no disponible",
       };
     });
   }, [activeServices, categoriesMap, userData, profileData, reviews.length]);
@@ -263,10 +260,7 @@ export default function ProfileView() {
       rating: profileData?.rating_average ?? 0,
       reviews: reviewsData.length,
       completion: Math.min(100, profileData?.jobs_completed ?? 0),
-      responseTime:
-        profileData?.availability_calendar?.responseTime ||
-        profileData?.availability_calendar?.response_time ||
-        "Responde en menos de 24 horas",
+      responseTime: "Responde en menos de 24 horas",
       memberSince,
       jobsCompleted: `${profileData?.jobs_completed ?? 0} trabajos completados`,
       location: location || "Ubicación no disponible",
@@ -287,17 +281,6 @@ export default function ProfileView() {
     isOwnProfile,
   ]);
 
-  const availabilityText = useMemo(() => {
-    if (!profileData?.availability_calendar) return null;
-    const entries = Object.entries(profileData.availability_calendar).filter(
-      ([, value]) => typeof value === "string" && value.trim().length
-    );
-    if (!entries.length) return null;
-    return entries
-      .map(([day, hours]) => `${day}: ${hours}`)
-      .join(" · ");
-  }, [profileData]);
-
   const serviceAreaData = useMemo(() => {
     const locationText = [userData?.location_city, userData?.location_country]
       .filter(Boolean)
@@ -307,26 +290,14 @@ export default function ProfileView() {
       addressSubtitle:
         userData?.location_country ||
         "Agrega tu país y ciudad para mostrarlo en tu perfil",
-      serviceRadius:
-        profileData?.availability_calendar?.radius ||
-        "Radio de servicio no definido",
-      transport:
-        profileData?.availability_calendar?.transport ||
-        "Transporte no especificado",
-      responseTime:
-        profileData?.availability_calendar?.responseTime ||
-        profileData?.availability_calendar?.response_time ||
-        "Menos de 24 horas",
-      availability:
-        availabilityText ||
-        "Comparte tus horarios para que los clientes puedan reservar.",
-      emergency:
-        profileData?.availability_calendar?.emergency ||
-        "Consulta disponibilidad previa",
-      mapEmbedUrl: profileData?.availability_calendar?.map_url || null,
+      serviceRadius: "Actualiza tu radio de servicio",
+      transport: "Transporte no especificado",
+      responseTime: "Menos de 24 horas",
+      emergency: "Consulta disponibilidad previa",
+      mapEmbedUrl: null,
       locationText,
     };
-  }, [profileData, userData, availabilityText]);
+  }, [profileData, userData]);
 
   const quickBookingOptions = useMemo(() => {
     if (!activeServices.length) return [];

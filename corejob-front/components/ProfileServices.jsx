@@ -26,8 +26,6 @@ export default function ProfileServices({ services = [] }) {
               priceValue={s.price}
               durationLabel="Duración:"
               durationValue={s.duration}
-              availabilityLabel="Disponibilidad:"
-              availabilityValue={s.availability}
             />
           ))}
         </div>
