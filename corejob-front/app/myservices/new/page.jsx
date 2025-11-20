@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { fetchJSON, getCurrentUser } from "@/lib/api";
+import { fetchJSON } from "@/lib/api";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const priceTypeOptions = [
   "precio fijo",
@@ -35,8 +36,7 @@ const emptyPhotoList = ["", "", ""];
 
 export default function NewServicePage() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const { user: currentUser, checking: authChecking } = useAuthGuard();
   const [form, setForm] = useState(initialForm);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -45,16 +45,6 @@ export default function NewServicePage() {
   const [catalogError, setCatalogError] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (!user?._id) {
-      router.replace("/login");
-      return;
-    }
-    setCurrentUser(user);
-    setAuthChecked(true);
-  }, [router]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -213,7 +203,7 @@ export default function NewServicePage() {
     }
   };
 
-  if (!authChecked && !hasAccess) {
+  if (authChecking) {
     return (
       <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">
         <div className="mx-auto flex max-w-xl flex-col gap-4 rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center">

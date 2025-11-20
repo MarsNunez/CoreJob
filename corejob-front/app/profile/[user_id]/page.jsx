@@ -46,10 +46,12 @@ export default function ProfileView() {
     let active = true;
     const storedUser = getCurrentUser();
     const routeUserId = params?.user_id;
-    const targetId = storedUser?._id || routeUserId;
-    const ownsProfile =
-      storedUser?._id &&
-      (!routeUserId || String(routeUserId) === String(storedUser._id));
+    const targetId = routeUserId || storedUser?._id;
+    const ownsProfile = storedUser?._id
+      ? routeUserId
+        ? String(routeUserId) === String(storedUser._id)
+        : true
+      : false;
     setIsOwnProfile(Boolean(ownsProfile));
 
     if (!targetId) {
@@ -297,7 +299,7 @@ export default function ProfileView() {
       mapEmbedUrl: null,
       locationText,
     };
-  }, [profileData, userData]);
+  }, [userData]);
 
   const quickBookingOptions = useMemo(() => {
     if (!activeServices.length) return [];

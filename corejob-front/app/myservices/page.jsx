@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import ServiceCard from "@/components/ServiceCard.jsx";
-import { fetchJSON, getCurrentUser } from "@/lib/api";
+import { fetchJSON } from "@/lib/api";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const formatPrice = (value) => {
   if (typeof value !== "number") return value || "S/ -";
@@ -20,25 +20,14 @@ const formatPrice = (value) => {
 };
 
 export default function MyServices() {
-  const router = useRouter();
+  const { user: currentUser, checking: authChecking } = useAuthGuard();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [currentUserId, setCurrentUserId] = useState("");
-  const [authChecked, setAuthChecked] = useState(false);
+  const currentUserId = currentUser?._id ? String(currentUser._id) : "";
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user?._id) {
-      router.replace("/login");
-      return;
-    }
-    setCurrentUserId(String(user._id));
-    setAuthChecked(true);
-  }, [router]);
-
-  useEffect(() => {
-    if (!currentUserId) return;
+    if (authChecking || !currentUserId) return;
     let active = true;
 
     const loadServices = async () => {
@@ -67,7 +56,7 @@ export default function MyServices() {
     return () => {
       active = false;
     };
-  }, [currentUserId]);
+  }, [authChecking, currentUserId]);
 
   const cards = useMemo(
     () =>
@@ -94,7 +83,7 @@ export default function MyServices() {
     [services]
   );
 
-  if (!authChecked && !currentUserId) {
+  if (authChecking) {
     return (
       <section className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white">
         <div className="flex flex-col items-center gap-3 text-center">

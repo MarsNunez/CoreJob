@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { fetchJSON, getCurrentUser } from "@/lib/api";
+import { fetchJSON } from "@/lib/api";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const priceTypeOptions = [
   "precio fijo",
@@ -34,8 +35,7 @@ const initialForm = {
 export default function ManageServiceView() {
   const router = useRouter();
   const { service_id: serviceId } = useParams();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const { user: currentUser, checking: authChecking } = useAuthGuard();
   const currentUserId = currentUser?._id ? String(currentUser._id) : "";
   const [form, setForm] = useState(initialForm);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -50,16 +50,6 @@ export default function ManageServiceView() {
   const [serviceOwnerId, setServiceOwnerId] = useState("");
 
   const hasAccess = Boolean(currentUser?._id);
-
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (!user?._id) {
-      router.replace("/login");
-      return;
-    }
-    setCurrentUser(user);
-    setAuthChecked(true);
-  }, [router]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -81,7 +71,7 @@ export default function ManageServiceView() {
   }, []);
 
   useEffect(() => {
-    if (!serviceId) return;
+    if (!serviceId || authChecking) return;
     let active = true;
 
     const loadService = async () => {
@@ -145,7 +135,7 @@ export default function ManageServiceView() {
     return () => {
       active = false;
     };
-  }, [serviceId, currentUserId]);
+  }, [serviceId, currentUserId, authChecking]);
 
   const handleFormChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -256,7 +246,7 @@ export default function ManageServiceView() {
 
     const { priceValue, discountValue } = validation;
     const payload = {
-      user_id: serviceOwnerId || currentUser._id,
+      user_id: serviceOwnerId || currentUser?._id,
       title: form.title.trim(),
       description: form.description.trim(),
       price_type: form.price_type,
@@ -287,7 +277,7 @@ export default function ManageServiceView() {
     }
   };
 
-  if (!authChecked && !hasAccess) {
+  if (authChecking) {
     return (
       <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">
         <div className="mx-auto flex max-w-xl flex-col gap-4 rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center">

@@ -9,9 +9,9 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthed, setIsAuthed] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
   const [roleLabel, setRoleLabel] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -43,29 +43,23 @@ export default function Sidebar() {
 
   const NavItem = ({ href, icon, label, onClick, className = "" }) => {
     const active = href ? pathname === href : false;
-    const base = `${
-      collapsed
-        ? "flex flex-col items-center gap-1 rounded-2xl px-3 py-2 text-[11px]"
-        : "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium"
-    } ${
-      active
-        ? "bg-white/15 text-white shadow-[0_15px_35px_rgba(16,185,129,0.25)]"
-        : "text-emerald-50/70 hover:text-white hover:bg-white/10"
-    } transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400 ${className}`;
     const content = (
       <div
-        className={`flex items-center ${
-          collapsed ? "flex-col gap-1" : "gap-3"
+        className={`flex gap-3 items-center ${
+          collapsed && "flex-col items-center text-center"
         }`}
       >
         <i
-          className={`${icon} text-[1rem] ${
-            collapsed ? "text-base" : ""
-          }`}
+          className={`${icon} ${collapsed && "text-[em]"} text-[1rem] w-5`}
         ></i>
-        <span className="truncate">{label}</span>
+        <span className={`${collapsed ? "text-[10px]" : "text-[1rem]"}`}>
+          {label}
+        </span>
       </div>
     );
+    const base = `nav-link ${collapsed ? "flex-col items-center" : ""} ${
+      active ? "nav-link-active" : ""
+    } ${className}`;
     if (href) {
       return (
         <Link href={href} className={base}>
@@ -74,7 +68,7 @@ export default function Sidebar() {
       );
     }
     return (
-      <button onClick={onClick} className={`${base} text-left`} type="button">
+      <button onClick={onClick} className={base + " text-left"}>
         {content}
       </button>
     );
@@ -82,9 +76,9 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`sticky top-0 hidden h-dvh flex-col border-r border-white/10 bg-[radial-gradient(circle_at_top,#07121c,#05080f)]/95 p-4 text-white shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur transition-all duration-300 md:flex ${
-        collapsed ? "w-20" : "w-64"
-      }`}
+      className={`h-dvh sticky top-0 duration-300 ${
+        collapsed ? "w-20" : "w-60"
+      } border-r border-neutral-200/60 dark:border-neutral-800 bg-white/70 dark:bg-neutral-900/60 backdrop-blur p-4 hidden md:flex md:flex-col`}
     >
       {/* Brand */}
       <div
@@ -92,15 +86,13 @@ export default function Sidebar() {
           collapsed ? "justify-center" : "gap-3 px-1"
         }`}
       >
-        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-emerald-500/15 text-emerald-300">
-          <i className="fa-solid fa-bolt"></i>
+        <div className="h-9 w-9 rounded-xl bg-indigo-600/10 grid place-items-center">
+          <i className="fa-solid fa-plus text-indigo-600"></i>
         </div>
         {!collapsed && (
           <div className="mr-auto">
-            <div className="text-sm font-semibold tracking-tight">
-              CoreJob
-            </div>
-            <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-emerald-500/40 px-2 py-0.5 text-[11px] text-emerald-100/80">
+            <div className="text-sm font-semibold">CoreJob.</div>
+            <div className="text-xs text-neutral-600 dark:text-neutral-300 border border-neutral-500 rounded px-2 py-0.5 inline-flex items-center gap-1">
               {roleLabel || (isAuthed ? "User" : "Guest")}
             </div>
           </div>
@@ -108,9 +100,8 @@ export default function Sidebar() {
         {!collapsed && (
           <button
             onClick={toggleCollapsed}
-            className="grid h-9 w-9 place-items-center rounded-2xl border border-white/10 text-slate-200 transition hover:bg-white/10"
-            title="Contraer"
-            type="button"
+            className="h-8 w-8 rounded-md grid place-items-center hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            title="Collapse"
           >
             <i className="fa-solid fa-angles-left"></i>
           </button>
@@ -120,9 +111,8 @@ export default function Sidebar() {
       {collapsed && (
         <button
           onClick={toggleCollapsed}
-          className="mb-4 grid h-9 w-9 place-items-center self-center rounded-2xl border border-white/10 text-slate-200 transition hover:bg-white/10"
-          title="Expandir"
-          type="button"
+          className="mb-4 h-8 w-8 rounded-md grid place-items-center hover:bg-neutral-100 dark:hover:bg-neutral-800 self-center"
+          title="Expand"
         >
           <i className="fa-solid fa-angles-right"></i>
         </button>
@@ -130,13 +120,13 @@ export default function Sidebar() {
 
       {/* Overview section */}
       <div
-        className={`mb-2 px-1 text-xs font-semibold tracking-[0.3em] text-emerald-300/70 ${
+        className={`text-xs font-medium text-neutral-400 px-1 mb-2 ${
           collapsed ? "hidden" : ""
         }`}
       >
         OVERVIEW
       </div>
-      <nav className={`flex flex-col ${collapsed ? "gap-5" : "gap-2"}`}>
+      <nav className={`flex flex-col gap-3 ${collapsed && "gap-5"}`}>
         <NavItem href="/" icon="fa-solid fa-house" label="Inicio" />
         <NavItem
           href="/search"
@@ -144,18 +134,18 @@ export default function Sidebar() {
           label="Buscar"
         />
         {isAuthed && (
-          <NavItem
-            href="/myservices"
-            icon="fa-solid fa-suitcase"
-            label="Mis servicios"
-          />
-        )}
-        {isAuthed && currentUser?._id && (
-          <NavItem
-            href={`/profile/${currentUser._id}`}
-            icon="fa-solid fa-user"
-            label="Perfil"
-          />
+          <>
+            <NavItem
+              href="/myservices"
+              icon="fa-solid fa-suitcase"
+              label="Mis servicios"
+            />
+            <NavItem
+              href={`/profile/${currentUser?._id ?? ""}`}
+              icon="fa-solid fa-user"
+              label="Perfil"
+            />
+          </>
         )}
         {isAuthed && (
           <NavItem
@@ -171,54 +161,54 @@ export default function Sidebar() {
 
       {/* Settings */}
       <div
-        className={`mb-2 px-1 text-xs font-semibold tracking-[0.3em] text-emerald-300/70 ${
+        className={`text-xs font-medium text-neutral-400 px-1 mb-2 ${
           collapsed ? "hidden" : ""
         }`}
       >
         SETTINGS
       </div>
-      <nav className="flex flex-col gap-y-2 text-[1rem]">
+      <nav className="flex flex-col text-[1rem] gap-y-2">
         <NavItem href="#" icon="fa-solid fa-gear" label="Settings" />
         {!isAuthed ? (
           <div
             className={
               collapsed
-                ? "mt-4 flex flex-col items-center gap-3"
-                : "mt-4 grid grid-cols-5 gap-3"
+                ? "mt-3 flex flex-col items-center gap-2"
+                : "grid grid-cols-5 text-center gap-x-2 mt-3"
             }
           >
             <Link
               href="/register"
               className={`${
-                collapsed ? "w-full px-4 py-3" : "col-span-3 px-4 py-2"
-              } inline-flex items-center justify-center rounded-2xl bg-emerald-600 text-sm font-semibold text-white transition hover:bg-emerald-500`}
+                !collapsed ? "col-span-3" : "px-3 py-3 w-full"
+              } rounded-md bg-white text-black py-1 flex items-center justify-center transition hover:bg-white/80`}
             >
               {collapsed ? (
                 <i className="fa-solid fa-user-plus"></i>
               ) : (
-                "Registrarse"
+                "Register"
               )}
             </Link>
             <Link
               href="/login"
               className={`${
-                collapsed ? "w-full px-4 py-3" : "col-span-2 px-4 py-2"
-              } inline-flex items-center justify-center rounded-2xl border border-white/20 text-sm font-semibold text-white transition hover:bg-white/10`}
+                !collapsed ? "col-span-2" : "px-3 py-3 w-full"
+              } border rounded-md py-1 flex items-center justify-center text-white transition hover:bg-white/10`}
             >
               {collapsed ? (
                 <i className="fa-solid fa-right-to-bracket"></i>
               ) : (
-                "Iniciar sesión"
+                "Login"
               )}
             </Link>
           </div>
         ) : (
           <button
             onClick={logout}
-            className={`mt-4 flex items-center justify-center rounded-2xl border border-red-500/40 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-red-500/10 ${
+            className={`mt-3 flex items-center justify-center rounded-md border border-red-500/30 px-3 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10 ${
               collapsed ? "w-full" : ""
             }`}
-            >
+          >
             {collapsed ? (
               <i className="fa-solid fa-right-from-bracket"></i>
             ) : (
