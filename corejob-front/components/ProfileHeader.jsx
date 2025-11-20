@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const FALLBACK_AVATAR =
   "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=400&q=80";
 
@@ -134,10 +136,13 @@ export default function ProfileHeader({ profile }) {
             Mensaje
           </button>
           {profile.canEdit && (
-            <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/40 px-4 py-3 text-emerald-100 transition hover:bg-emerald-500/10">
+            <Link
+              href="/profile/edit"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/40 px-4 py-3 text-emerald-100 transition hover:bg-emerald-500/10"
+            >
               <i className="fa-regular fa-pen-to-square"></i>
               Editar
-            </button>
+            </Link>
           )}
         </div>
         <div className="rounded-2xl border border-white/10 bg-[#0f2333] px-5 py-4 text-center">

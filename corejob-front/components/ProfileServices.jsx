@@ -5,7 +5,7 @@ import Card from "@/components/Card";
 export default function ProfileServices({ services = [] }) {
   return (
     <section className="space-y-6">
-      <h2 className="text-2xl font-semibold text-white">Servicioss</h2>
+      <h2 className="text-2xl font-semibold text-white">Servicios</h2>
       {services.length === 0 ? (
         <p className="rounded-2xl border border-white/10 bg-[#101e2a] p-6 text-center text-slate-300">
           Nada que mostrar por ahora.
