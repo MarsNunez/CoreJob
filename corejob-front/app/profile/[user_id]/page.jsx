@@ -144,14 +144,19 @@ export default function ProfileView() {
       .filter(Boolean);
   }, [profileData, categoriesMap]);
 
-  const activeServices = useMemo(
-    () => services.filter((service) => service.is_active !== false),
-    [services]
-  );
+  const visibleServices = useMemo(() => {
+    return [...services]
+      .filter((service) => service.is_active !== false)
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
+        return dateB - dateA;
+      });
+  }, [services]);
 
   const priceRange = useMemo(() => {
-    if (!activeServices.length) return "Tarifa a coordinar";
-    const prices = activeServices
+    if (!visibleServices.length) return "Tarifa a coordinar";
+    const prices = visibleServices
       .map((service) => Number(service.price))
       .filter((value) => !Number.isNaN(value));
     if (!prices.length) return "Tarifa a coordinar";
@@ -160,11 +165,11 @@ export default function ProfileView() {
     return min === max
       ? formatPrice(min)
       : `${formatPrice(min)} - ${formatPrice(max)}`;
-  }, [activeServices]);
+  }, [services]);
 
   const servicesCards = useMemo(() => {
-    if (!activeServices.length) return [];
-    return activeServices.map((service) => {
+    if (!visibleServices.length) return [];
+    return visibleServices.slice(0, 4).map((service) => {
       const firstCategoryId = service.categores_id?.[0];
       const categoryName = categoriesMap.get(String(firstCategoryId))?.name;
       return {
@@ -186,7 +191,7 @@ export default function ProfileView() {
         duration: service.estimated_duration || "A coordinar",
       };
     });
-  }, [activeServices, categoriesMap, userData, profileData, reviews.length]);
+  }, [visibleServices, categoriesMap, userData, profileData, reviews.length]);
 
   const portfolioProjects = useMemo(() => {
     if (!portfolio.length) return [];
@@ -302,12 +307,12 @@ export default function ProfileView() {
   }, [userData]);
 
   const quickBookingOptions = useMemo(() => {
-    if (!activeServices.length) return [];
-    return activeServices.map((service) => ({
+    if (!visibleServices.length) return [];
+    return visibleServices.map((service) => ({
       id: service._id,
       label: service.title,
     }));
-  }, [activeServices]);
+  }, [visibleServices]);
 
   if (loading) {
     return (
