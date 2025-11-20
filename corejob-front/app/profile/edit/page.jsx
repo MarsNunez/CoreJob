@@ -17,10 +17,19 @@ export default function EditProfilePage() {
     phone: "",
     location_country: "",
     location_city: "",
+    password: "",
+    confirmPassword: "",
   });
   const [profileForm, setProfileForm] = useState({
     bio: "",
     profile_picture: "",
+    service_map_url: "",
+    service_address_title: "",
+    service_address_subtitle: "",
+    service_radius: "",
+    service_transport: "",
+    service_response_time: "",
+    service_emergency: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -55,18 +64,27 @@ export default function EditProfilePage() {
         setCategories(categoriesResp || []);
         setProfileId(matchedProfile?._id || "");
 
-        setUserForm({
+        setUserForm((prev) => ({
+          ...prev,
           full_name: currentUser.full_name || "",
           email: currentUser.email || "",
           phone: currentUser.phone || "",
           location_country: currentUser.location_country || "",
           location_city: currentUser.location_city || "",
-        });
+        }));
 
         if (matchedProfile) {
           setProfileForm({
             bio: matchedProfile.bio || "",
             profile_picture: matchedProfile.profile_picture || "",
+            service_map_url: matchedProfile.service_map_url || "",
+            service_address_title: matchedProfile.service_address_title || "",
+            service_address_subtitle:
+              matchedProfile.service_address_subtitle || "",
+            service_radius: matchedProfile.service_radius || "",
+            service_transport: matchedProfile.service_transport || "",
+            service_response_time: matchedProfile.service_response_time || "",
+            service_emergency: matchedProfile.service_emergency || "",
           });
           setSelectedCategories(
             Array.isArray(matchedProfile.categories)
@@ -113,12 +131,25 @@ export default function EditProfilePage() {
     setSaving(true);
     setError("");
 
+    if (userForm.password && userForm.password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      setSaving(false);
+      return;
+    }
+
+    if (userForm.password !== userForm.confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      setSaving(false);
+      return;
+    }
+
     const userPayload = {
       full_name: userForm.full_name.trim(),
       email: userForm.email.trim(),
       phone: userForm.phone.trim(),
       location_country: userForm.location_country.trim(),
       location_city: userForm.location_city.trim(),
+      ...(userForm.password ? { password: userForm.password } : {}),
     };
 
     const profilePayload = {
@@ -126,6 +157,13 @@ export default function EditProfilePage() {
       bio: profileForm.bio.trim(),
       profile_picture: profileForm.profile_picture.trim(),
       categories: selectedCategories,
+      service_map_url: profileForm.service_map_url.trim(),
+      service_address_title: profileForm.service_address_title.trim(),
+      service_address_subtitle: profileForm.service_address_subtitle.trim(),
+      service_radius: profileForm.service_radius.trim(),
+      service_transport: profileForm.service_transport.trim(),
+      service_response_time: profileForm.service_response_time.trim(),
+      service_emergency: profileForm.service_emergency.trim(),
     };
 
     try {
@@ -257,6 +295,28 @@ export default function EditProfilePage() {
                   className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
                 />
               </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Nueva contraseña
+                <input
+                  type="password"
+                  name="password"
+                  value={userForm.password}
+                  onChange={handleUserChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Dejar vacío para no cambiar"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Confirmar contraseña
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={userForm.confirmPassword}
+                  onChange={handleUserChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Repite la contraseña"
+                />
+              </label>
             </div>
 
             <label className="flex flex-col gap-2 text-sm text-slate-200">
@@ -319,6 +379,88 @@ export default function EditProfilePage() {
           </div>
 
           <aside className="space-y-4 rounded-[28px] border border-white/10 bg-[#09131d] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-emerald-200">
+                Ubicación y área de servicio
+              </p>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                URL del mapa (embed)
+                <input
+                  type="url"
+                  name="service_map_url"
+                  value={profileForm.service_map_url}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="https://www.google.com/maps/embed?..."
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Dirección (título)
+                <input
+                  type="text"
+                  name="service_address_title"
+                  value={profileForm.service_address_title}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Ej. Madrid"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Dirección (subtítulo)
+                <input
+                  type="text"
+                  name="service_address_subtitle"
+                  value={profileForm.service_address_subtitle}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Ej. España"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Radio de servicio
+                <input
+                  type="text"
+                  name="service_radius"
+                  value={profileForm.service_radius}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Ej. Hasta 25 km"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Transporte
+                <input
+                  type="text"
+                  name="service_transport"
+                  value={profileForm.service_transport}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Ej. Vehículo propio, transporte público"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Respuesta promedio
+                <input
+                  type="text"
+                  name="service_response_time"
+                  value={profileForm.service_response_time}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Ej. Menos de 24 horas"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Emergencias
+                <input
+                  type="text"
+                  name="service_emergency"
+                  value={profileForm.service_emergency}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Ej. Consulta disponibilidad previa"
+                />
+              </label>
+            </div>
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1b28] p-4">
               <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-black/30">
                 {profileForm.profile_picture ? (

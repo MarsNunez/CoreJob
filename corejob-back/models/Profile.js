@@ -17,6 +17,34 @@ const ProfileSchema = new Schema(
       type: String,
       trim: true,
     },
+    service_map_url: {
+      type: String,
+      trim: true,
+    },
+    service_address_title: {
+      type: String,
+      trim: true,
+    },
+    service_address_subtitle: {
+      type: String,
+      trim: true,
+    },
+    service_radius: {
+      type: String,
+      trim: true,
+    },
+    service_transport: {
+      type: String,
+      trim: true,
+    },
+    service_response_time: {
+      type: String,
+      trim: true,
+    },
+    service_emergency: {
+      type: String,
+      trim: true,
+    },
     rating_average: {
       type: Number,
       default: 0,

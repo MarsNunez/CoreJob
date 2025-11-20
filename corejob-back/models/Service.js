@@ -48,10 +48,6 @@ const ServiceSchema = new Schema(
       type: String,
       trim: true,
     },
-    location: {
-      type: String,
-      trim: true,
-    },
     photos: {
       type: [String],
       default: [],

@@ -293,18 +293,26 @@ export default function ProfileView() {
       .filter(Boolean)
       .join(", ");
     return {
-      addressTitle: userData?.location_city || "Ubicación no especificada",
+      addressTitle:
+        profileData?.service_address_title ||
+        userData?.location_city ||
+        "Ubicación no especificada",
       addressSubtitle:
+        profileData?.service_address_subtitle ||
         userData?.location_country ||
         "Agrega tu país y ciudad para mostrarlo en tu perfil",
-      serviceRadius: "Actualiza tu radio de servicio",
-      transport: "Transporte no especificado",
-      responseTime: "Menos de 24 horas",
-      emergency: "Consulta disponibilidad previa",
-      mapEmbedUrl: null,
+      serviceRadius:
+        profileData?.service_radius || "Actualiza tu radio de servicio",
+      transport:
+        profileData?.service_transport || "Transporte no especificado",
+      responseTime:
+        profileData?.service_response_time || "Menos de 24 horas",
+      emergency:
+        profileData?.service_emergency || "Consulta disponibilidad previa",
+      mapEmbedUrl: profileData?.service_map_url || null,
       locationText,
     };
-  }, [userData]);
+  }, [profileData, userData]);
 
   const quickBookingOptions = useMemo(() => {
     if (!visibleServices.length) return [];
