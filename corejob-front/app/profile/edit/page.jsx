@@ -3,10 +3,18 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { fetchJSON, getCurrentUser, getToken, setAuthSession } from "@/lib/api";
 
 export default function EditProfilePage() {
   const router = useRouter();
+  const MapPickerModal = useMemo(
+    () =>
+      dynamic(() => import("@/components/MapPickerModal"), {
+        ssr: false,
+      }),
+    []
+  );
   const [currentUser, setCurrentUser] = useState(null);
   const [profileId, setProfileId] = useState("");
   const [categories, setCategories] = useState([]);
@@ -24,8 +32,7 @@ export default function EditProfilePage() {
     bio: "",
     profile_picture: "",
     service_map_url: "",
-    service_address_title: "",
-    service_address_subtitle: "",
+    service_address: "",
     service_radius: "",
     service_transport: "",
     service_response_time: "",
@@ -34,6 +41,7 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [mapModalOpen, setMapModalOpen] = useState(false);
 
   // Guard + initial fetch
   useEffect(() => {
@@ -78,9 +86,7 @@ export default function EditProfilePage() {
             bio: matchedProfile.bio || "",
             profile_picture: matchedProfile.profile_picture || "",
             service_map_url: matchedProfile.service_map_url || "",
-            service_address_title: matchedProfile.service_address_title || "",
-            service_address_subtitle:
-              matchedProfile.service_address_subtitle || "",
+            service_address: matchedProfile.service_address || "",
             service_radius: matchedProfile.service_radius || "",
             service_transport: matchedProfile.service_transport || "",
             service_response_time: matchedProfile.service_response_time || "",
@@ -125,6 +131,23 @@ export default function EditProfilePage() {
     [saving, currentUser]
   );
 
+  const computedMapUrl = useMemo(() => {
+    if (profileForm.service_map_url.trim()) return profileForm.service_map_url.trim();
+    if (profileForm.service_address.trim()) {
+      const q = encodeURIComponent(profileForm.service_address.trim());
+      return `https://www.google.com/maps?q=${q}&output=embed`;
+    }
+    return "";
+  }, [profileForm.service_map_url, profileForm.service_address]);
+
+  const handleMapConfirm = ({ address, mapUrl }) => {
+    setProfileForm((prev) => ({
+      ...prev,
+      service_address: address || prev.service_address,
+      service_map_url: mapUrl || prev.service_map_url,
+    }));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!currentUser?._id) return;
@@ -157,9 +180,8 @@ export default function EditProfilePage() {
       bio: profileForm.bio.trim(),
       profile_picture: profileForm.profile_picture.trim(),
       categories: selectedCategories,
-      service_map_url: profileForm.service_map_url.trim(),
-      service_address_title: profileForm.service_address_title.trim(),
-      service_address_subtitle: profileForm.service_address_subtitle.trim(),
+      service_map_url: computedMapUrl,
+      service_address: profileForm.service_address.trim(),
       service_radius: profileForm.service_radius.trim(),
       service_transport: profileForm.service_transport.trim(),
       service_response_time: profileForm.service_response_time.trim(),
@@ -383,6 +405,25 @@ export default function EditProfilePage() {
               <p className="text-xs uppercase tracking-[0.3em] text-emerald-200">
                 Ubicación y área de servicio
               </p>
+              <button
+                type="button"
+                onClick={() => setMapModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-emerald-500/40 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/10"
+              >
+                <i className="fa-solid fa-map-location-dot"></i>
+                Abrir mapa interactivo
+              </button>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                Dirección
+                <input
+                  type="text"
+                  name="service_address"
+                  value={profileForm.service_address}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  placeholder="Calle, ciudad, país"
+                />
+              </label>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
                 URL del mapa (embed)
                 <input
@@ -391,30 +432,11 @@ export default function EditProfilePage() {
                   value={profileForm.service_map_url}
                   onChange={handleProfileChange}
                   className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  placeholder="https://www.google.com/maps/embed?..."
+                  placeholder="https://www.google.com/maps/embed?... (opcional)"
                 />
-              </label>
-              <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Dirección (título)
-                <input
-                  type="text"
-                  name="service_address_title"
-                  value={profileForm.service_address_title}
-                  onChange={handleProfileChange}
-                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  placeholder="Ej. Madrid"
-                />
-              </label>
-              <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Dirección (subtítulo)
-                <input
-                  type="text"
-                  name="service_address_subtitle"
-                  value={profileForm.service_address_subtitle}
-                  onChange={handleProfileChange}
-                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  placeholder="Ej. España"
-                />
+                <p className="text-xs text-slate-400">
+                  Si lo dejas vacío generaremos el mapa con la dirección.
+                </p>
               </label>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
                 Radio de servicio
@@ -493,6 +515,12 @@ export default function EditProfilePage() {
           </aside>
         </form>
       </div>
+      <MapPickerModal
+        open={mapModalOpen}
+        onClose={() => setMapModalOpen(false)}
+        onConfirm={handleMapConfirm}
+        initialAddress={profileForm.service_address}
+      />
     </section>
   );
 }

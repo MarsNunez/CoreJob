@@ -21,11 +21,7 @@ const ProfileSchema = new Schema(
       type: String,
       trim: true,
     },
-    service_address_title: {
-      type: String,
-      trim: true,
-    },
-    service_address_subtitle: {
+    service_address: {
       type: String,
       trim: true,
     },

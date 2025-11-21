@@ -292,13 +292,23 @@ export default function ProfileView() {
     const locationText = [userData?.location_city, userData?.location_country]
       .filter(Boolean)
       .join(", ");
+
+    const address =
+      profileData?.service_address ||
+      locationText ||
+      "Ubicación no especificada";
+
+    const mapEmbed =
+      profileData?.service_map_url ||
+      (address
+        ? `https://www.google.com/maps?q=${encodeURIComponent(
+            address
+          )}&output=embed`
+        : null);
+
     return {
-      addressTitle:
-        profileData?.service_address_title ||
-        userData?.location_city ||
-        "Ubicación no especificada",
+      addressTitle: address,
       addressSubtitle:
-        profileData?.service_address_subtitle ||
         userData?.location_country ||
         "Agrega tu país y ciudad para mostrarlo en tu perfil",
       serviceRadius:
@@ -309,7 +319,7 @@ export default function ProfileView() {
         profileData?.service_response_time || "Menos de 24 horas",
       emergency:
         profileData?.service_emergency || "Consulta disponibilidad previa",
-      mapEmbedUrl: profileData?.service_map_url || null,
+      mapEmbedUrl: mapEmbed,
       locationText,
     };
   }, [profileData, userData]);
