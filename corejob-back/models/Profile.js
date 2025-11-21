@@ -25,9 +25,20 @@ const ProfileSchema = new Schema(
       type: String,
       trim: true,
     },
-    service_radius: {
+    service_radius_value: {
+      type: Number,
+      min: 0,
+    },
+    service_radius_unit: {
       type: String,
-      trim: true,
+      enum: ["km", "m"],
+      default: "km",
+    },
+    service_lat: {
+      type: Number,
+    },
+    service_lng: {
+      type: Number,
     },
     service_transport: {
       type: String,

@@ -33,10 +33,13 @@ export default function EditProfilePage() {
     profile_picture: "",
     service_map_url: "",
     service_address: "",
-    service_radius: "",
+    service_radius_value: "",
+    service_radius_unit: "km",
     service_transport: "",
     service_response_time: "",
     service_emergency: "",
+    service_lat: "",
+    service_lng: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -87,10 +90,23 @@ export default function EditProfilePage() {
             profile_picture: matchedProfile.profile_picture || "",
             service_map_url: matchedProfile.service_map_url || "",
             service_address: matchedProfile.service_address || "",
-            service_radius: matchedProfile.service_radius || "",
+            service_radius_value:
+              matchedProfile.service_radius_value !== undefined
+                ? String(matchedProfile.service_radius_value)
+                : "",
+            service_radius_unit:
+              matchedProfile.service_radius_unit || "km",
             service_transport: matchedProfile.service_transport || "",
             service_response_time: matchedProfile.service_response_time || "",
             service_emergency: matchedProfile.service_emergency || "",
+            service_lat:
+              matchedProfile.service_lat !== undefined
+                ? String(matchedProfile.service_lat)
+                : "",
+            service_lng:
+              matchedProfile.service_lng !== undefined
+                ? String(matchedProfile.service_lng)
+                : "",
           });
           setSelectedCategories(
             Array.isArray(matchedProfile.categories)
@@ -132,19 +148,30 @@ export default function EditProfilePage() {
   );
 
   const computedMapUrl = useMemo(() => {
-    if (profileForm.service_map_url.trim()) return profileForm.service_map_url.trim();
+    if (profileForm.service_map_url.trim())
+      return profileForm.service_map_url.trim();
+    if (profileForm.service_lat && profileForm.service_lng) {
+      return `https://www.google.com/maps?q=${profileForm.service_lat},${profileForm.service_lng}&output=embed`;
+    }
     if (profileForm.service_address.trim()) {
       const q = encodeURIComponent(profileForm.service_address.trim());
       return `https://www.google.com/maps?q=${q}&output=embed`;
     }
     return "";
-  }, [profileForm.service_map_url, profileForm.service_address]);
+  }, [
+    profileForm.service_map_url,
+    profileForm.service_address,
+    profileForm.service_lat,
+    profileForm.service_lng,
+  ]);
 
-  const handleMapConfirm = ({ address, mapUrl }) => {
+  const handleMapConfirm = ({ address, mapUrl, lat, lng }) => {
     setProfileForm((prev) => ({
       ...prev,
       service_address: address || prev.service_address,
       service_map_url: mapUrl || prev.service_map_url,
+      service_lat: lat !== undefined ? String(lat) : prev.service_lat,
+      service_lng: lng !== undefined ? String(lng) : prev.service_lng,
     }));
   };
 
@@ -182,7 +209,15 @@ export default function EditProfilePage() {
       categories: selectedCategories,
       service_map_url: computedMapUrl,
       service_address: profileForm.service_address.trim(),
-      service_radius: profileForm.service_radius.trim(),
+      service_lat:
+        profileForm.service_lat === "" ? undefined : Number(profileForm.service_lat),
+      service_lng:
+        profileForm.service_lng === "" ? undefined : Number(profileForm.service_lng),
+      service_radius_value:
+        profileForm.service_radius_value === ""
+          ? undefined
+          : Number(profileForm.service_radius_value),
+      service_radius_unit: profileForm.service_radius_unit || "km",
       service_transport: profileForm.service_transport.trim(),
       service_response_time: profileForm.service_response_time.trim(),
       service_emergency: profileForm.service_emergency.trim(),
@@ -438,17 +473,46 @@ export default function EditProfilePage() {
                   Si lo dejas vacío generaremos el mapa con la dirección.
                 </p>
               </label>
-              <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Radio de servicio
-                <input
-                  type="text"
-                  name="service_radius"
-                  value={profileForm.service_radius}
-                  onChange={handleProfileChange}
-                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  placeholder="Ej. Hasta 25 km"
-                />
-              </label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-[#0f2333] px-3 py-2 text-xs text-slate-200">
+                  <p className="text-slate-400">Latitud</p>
+                  <p className="font-semibold text-white">
+                    {profileForm.service_lat || "—"}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#0f2333] px-3 py-2 text-xs text-slate-200">
+                  <p className="text-slate-400">Longitud</p>
+                  <p className="font-semibold text-white">
+                    {profileForm.service_lng || "—"}
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                  Radio de servicio
+                  <input
+                    type="number"
+                    min="0"
+                    name="service_radius_value"
+                    value={profileForm.service_radius_value}
+                    onChange={handleProfileChange}
+                    className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                    placeholder="Ej. 25"
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm text-slate-200">
+                  Unidad
+                  <select
+                    name="service_radius_unit"
+                    value={profileForm.service_radius_unit}
+                    onChange={handleProfileChange}
+                    className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  >
+                    <option value="km">Km</option>
+                    <option value="m">Metros</option>
+                  </select>
+                </label>
+              </div>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
                 Transporte
                 <input

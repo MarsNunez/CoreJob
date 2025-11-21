@@ -306,13 +306,39 @@ export default function ProfileView() {
           )}&output=embed`
         : null);
 
+    const lat =
+      typeof profileData?.service_lat === "number"
+        ? profileData.service_lat
+        : profileData?.service_lat
+        ? Number(profileData.service_lat)
+        : null;
+    const lng =
+      typeof profileData?.service_lng === "number"
+        ? profileData.service_lng
+        : profileData?.service_lng
+        ? Number(profileData.service_lng)
+        : null;
+
+    const radiusValue =
+      typeof profileData?.service_radius_value === "number"
+        ? profileData.service_radius_value
+        : profileData?.service_radius_value
+        ? Number(profileData.service_radius_value)
+        : null;
+    const radiusUnit =
+      profileData?.service_radius_unit === "m" ? "m" : "km";
+
     return {
       addressTitle: address,
       addressSubtitle:
         userData?.location_country ||
         "Agrega tu país y ciudad para mostrarlo en tu perfil",
       serviceRadius:
-        profileData?.service_radius || "Actualiza tu radio de servicio",
+        radiusValue !== null
+          ? `${radiusValue} ${radiusUnit}`
+          : "Actualiza tu radio de servicio",
+      serviceRadiusValue: radiusValue,
+      serviceRadiusUnit: radiusUnit,
       transport:
         profileData?.service_transport || "Transporte no especificado",
       responseTime:
@@ -320,6 +346,8 @@ export default function ProfileView() {
       emergency:
         profileData?.service_emergency || "Consulta disponibilidad previa",
       mapEmbedUrl: mapEmbed,
+      lat,
+      lng,
       locationText,
     };
   }, [profileData, userData]);

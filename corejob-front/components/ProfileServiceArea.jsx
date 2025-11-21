@@ -1,15 +1,41 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
+
+const LeafletServiceMap = dynamic(() => import("./ProfileServiceMap.jsx"), {
+  ssr: false,
+});
+
 export default function ProfileServiceArea({ location = {} }) {
   const {
     addressTitle,
     addressSubtitle,
     serviceRadius,
+    serviceRadiusValue,
+    serviceRadiusUnit,
     transport,
     responseTime,
     emergency,
     mapEmbedUrl,
+    lat,
+    lng,
   } = location;
+
+  const radiusMeters = useMemo(() => {
+    if (serviceRadiusValue === null || serviceRadiusValue === undefined)
+      return null;
+    const value = Number(serviceRadiusValue);
+    if (Number.isNaN(value)) return null;
+    const unit = serviceRadiusUnit === "m" ? "m" : "km";
+    return unit === "m" ? value : value * 1000;
+  }, [serviceRadiusValue, serviceRadiusUnit]);
+
+  const hasCoords =
+    typeof lat === "number" &&
+    !Number.isNaN(lat) &&
+    typeof lng === "number" &&
+    !Number.isNaN(lng);
 
   const infoRows = [
     {
@@ -61,7 +87,14 @@ export default function ProfileServiceArea({ location = {} }) {
       </header>
 
       <div className="mt-5 overflow-hidden rounded-3xl border border-white/10">
-        {mapEmbedUrl ? (
+        {hasCoords ? (
+          <LeafletServiceMap
+            lat={lat}
+            lng={lng}
+            radiusMeters={radiusMeters}
+            addressTitle={addressTitle}
+          />
+        ) : mapEmbedUrl ? (
           <iframe
             title="Mapa de ubicación del profesional"
             src={mapEmbedUrl}
