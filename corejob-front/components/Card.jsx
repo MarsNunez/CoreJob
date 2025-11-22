@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const DEFAULT_IMAGE =
@@ -24,6 +25,7 @@ export default function Card({
   durationLabel = "Duración:",
   durationValue = "1 hora",
   gallery = [],
+  providerHref,
   children,
 }) {
   const [openInfo, setOpenInfo] = useState(false);
@@ -49,15 +51,15 @@ export default function Card({
   const isHorizontal = layout === "horizontal";
   const containerClasses = isHorizontal
     ? "flex w-full flex-col md:flex-row max-w-full"
-    : "flex flex-col max-w-[18rem]";
+    : "flex h-full w-full flex-col max-w-[18rem]";
 
   const mediaClasses = isHorizontal
     ? "relative h-48 w-full cursor-pointer md:h-auto md:w-64 md:flex-shrink-0"
     : "relative h-44 w-full cursor-pointer";
 
   const contentWrapperClasses = isHorizontal
-    ? "flex-1 space-y-4 px-6 py-6"
-    : "space-y-4 px-6 py-6";
+    ? "flex-1 space-y-4 px-6 py-6 flex flex-col"
+    : "space-y-4 px-6 py-6 flex flex-col h-full flex-1";
 
   return (
     <>
@@ -85,7 +87,7 @@ export default function Card({
       <div className={contentWrapperClasses}>
         {children ?? (
           <>
-            <h3 className="text-lg font-semibold leading-tight text-left">
+            <h3 className="text-lg font-semibold leading-tight text-left line-clamp-2 min-h-[3.5rem]">
               {title}
             </h3>
 
@@ -97,7 +99,16 @@ export default function Card({
               />
               <div>
                 <div className="flex items-center gap-x-1">
-                  <p className="text-sm font-semibold">{provider.name}</p>
+                  {providerHref ? (
+                    <Link
+                      href={providerHref}
+                      className="text-sm font-semibold text-white hover:text-emerald-300"
+                    >
+                      {provider.name}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-semibold">{provider.name}</p>
+                  )}
                   <i className="fa-solid fa-circle-check text-green-600"></i>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-slate-300">
@@ -121,7 +132,7 @@ export default function Card({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
+            <div className="grid grid-cols-2 gap-3 pt-2 text-sm mt-auto">
               <button onClick={openModal} className="flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-white transition hover:bg-white/10">
                 <i className="fa-regular fa-circle-question"></i>
                 Info
@@ -216,7 +227,16 @@ export default function Card({
               <img src={provider.avatar} alt={provider.name} className="h-10 w-10 rounded-full object-cover" />
               <div>
                 <div className="flex items-center gap-1">
-                  <span className="font-semibold text-white">{provider.name}</span>
+                  {providerHref ? (
+                    <Link
+                      href={providerHref}
+                      className="font-semibold text-white hover:text-emerald-300"
+                    >
+                      {provider.name}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-white">{provider.name}</span>
+                  )}
                   <i className="fa-solid fa-circle-check text-green-600"></i>
                 </div>
                 <div className="flex items-center gap-1 text-xs">

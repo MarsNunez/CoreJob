@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { PERU_DEPARTMENTS } from "@/constants/peruLocations";
-import { PRICE_CURRENCIES } from "@/constants/currencies";
+import { PRICE_CURRENCIES, PRICE_CURRENCY_MAP } from "@/constants/currencies";
 import { fetchJSON, getCurrentUser, getToken, setAuthSession } from "@/lib/api";
+import twemoji from "twemoji";
+
+const getCurrencyFlagUrl = (emoji) => {
+  if (!emoji) return "";
+  const codePoint = twemoji.convert.toCodePoint(emoji);
+  return `https://twemoji.maxcdn.com/v/latest/svg/${codePoint}.svg`;
+};
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -53,6 +60,8 @@ export default function EditProfilePage() {
   const [error, setError] = useState("");
   const [priceError, setPriceError] = useState("");
   const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const currencyDropdownRef = useRef(null);
 
   // Guard + initial fetch
   useEffect(() => {
@@ -172,6 +181,47 @@ export default function EditProfilePage() {
     () => saving || !currentUser?._id,
     [saving, currentUser]
   );
+
+  const selectedCurrency = useMemo(
+    () =>
+      PRICE_CURRENCY_MAP[profileForm.service_price_currency] ||
+      PRICE_CURRENCY_MAP.PEN,
+    [profileForm.service_price_currency]
+  );
+
+  const currencyFlagUrl = useMemo(
+    () => getCurrencyFlagUrl(selectedCurrency?.emoji),
+    [selectedCurrency]
+  );
+
+  const handleCurrencySelect = (code) => {
+    setProfileForm((prev) => ({ ...prev, service_price_currency: code }));
+    setCurrencyOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        currencyDropdownRef.current &&
+        !currencyDropdownRef.current.contains(event.target)
+      ) {
+        setCurrencyOpen(false);
+      }
+    };
+    const handleEscape = (event) => {
+      if (event.key === "Escape") setCurrencyOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  useEffect(() => {
+    setCurrencyOpen(false);
+  }, [profileForm.service_price_currency]);
 
   const computedMapUrl = useMemo(() => {
     if (profileForm.service_map_url.trim())
@@ -628,18 +678,84 @@ export default function EditProfilePage() {
               </div>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
                 Tipo de moneda preferida
-                <select
-                  name="service_price_currency"
-                  value={profileForm.service_price_currency}
-                  onChange={handleProfileChange}
-                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                >
-                  {PRICE_CURRENCIES.map((currency) => (
-                    <option key={currency.code} value={currency.code}>
-                      {currency.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative" ref={currencyDropdownRef}>
+                  <input
+                    type="hidden"
+                    name="service_price_currency"
+                    value={profileForm.service_price_currency}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setCurrencyOpen((open) => !open)}
+                    className={`flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-left text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40 ${
+                      currencyFlagUrl ? "pl-3" : ""
+                    }`}
+                    aria-haspopup="listbox"
+                    aria-expanded={currencyOpen}
+                  >
+                    <span className="flex items-center gap-3">
+                      {currencyFlagUrl ? (
+                        <img
+                          src={currencyFlagUrl}
+                          alt=""
+                          aria-hidden="true"
+                          className="h-5 w-5 flex-shrink-0 rounded-[6px] bg-[#0d1b28]"
+                          loading="lazy"
+                        />
+                      ) : null}
+                      <span>{selectedCurrency?.label || "Selecciona"}</span>
+                    </span>
+                    <i
+                      className={`fa-solid fa-chevron-down text-xs transition ${
+                        currencyOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {currencyOpen ? (
+                    <ul
+                      className="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0d1b28] shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+                      role="listbox"
+                    >
+                      {PRICE_CURRENCIES.map((currency) => {
+                        const optionFlag = getCurrencyFlagUrl(currency.emoji);
+                        const isSelected =
+                          profileForm.service_price_currency === currency.code;
+                        return (
+                          <li key={currency.code}>
+                            <button
+                              type="button"
+                              onMouseDown={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                handleCurrencySelect(currency.code);
+                              }}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                              }}
+                              className={`flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-white/5 ${
+                                isSelected ? "bg-white/5 text-emerald-100" : ""
+                              }`}
+                              role="option"
+                              aria-selected={isSelected}
+                            >
+                              {optionFlag ? (
+                                <img
+                                  src={optionFlag}
+                                  alt=""
+                                  aria-hidden="true"
+                                  className="h-5 w-5 flex-shrink-0 rounded-[6px]"
+                                  loading="lazy"
+                                />
+                              ) : null}
+                              <span>{currency.label}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
+                </div>
                 <p className="text-xs text-slate-400">
                   Usaremos esta moneda para tus servicios y estimaciones de
                   precio.

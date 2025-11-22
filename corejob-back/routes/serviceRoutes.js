@@ -1,13 +1,52 @@
 import express from "express";
+import mongoose from "mongoose";
 import { ServiceModel } from "../models/Service.js";
 
 const router = express.Router();
 
+const serviceWithOwnerPipeline = [
+  {
+    $lookup: {
+      from: "users",
+      localField: "user_id",
+      foreignField: "_id",
+      as: "user",
+    },
+  },
+  { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: "profiles",
+      localField: "user._id",
+      foreignField: "user_id",
+      as: "profile",
+    },
+  },
+  { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } },
+];
+
+const mapServiceOwner = (serviceDoc) => {
+  if (!serviceDoc) return serviceDoc;
+  const user = serviceDoc.user || null;
+  const profile = serviceDoc.profile || null;
+  return {
+    ...serviceDoc,
+    user,
+    profile,
+    user_name: user?.full_name || user?.name || "",
+    user_avatar:
+      profile?.profile_picture ||
+      user?.profile_picture ||
+      user?.avatar ||
+      "",
+  };
+};
+
 // GET ALL SERVICES
 router.get("/", async (req, res) => {
   try {
-    const services = await ServiceModel.find({});
-    res.status(200).json(services);
+    const services = await ServiceModel.aggregate(serviceWithOwnerPipeline);
+    res.status(200).json(services.map(mapServiceOwner));
   } catch (error) {
     res
       .status(500)
@@ -18,11 +57,15 @@ router.get("/", async (req, res) => {
 // GET SERVICE BY ID
 router.get("/:id", async (req, res) => {
   try {
-    const service = await ServiceModel.findById(req.params.id);
+    const [service] = await ServiceModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(req.params.id) } },
+      ...serviceWithOwnerPipeline,
+    ]);
+
     if (!service) {
       return res.status(404).json({ message: "Service not found." });
     }
-    res.json(service);
+    res.json(mapServiceOwner(service));
   } catch (error) {
     res
       .status(500)

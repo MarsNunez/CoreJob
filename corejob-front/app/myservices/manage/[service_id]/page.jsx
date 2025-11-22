@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchJSON } from "@/lib/api";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 
@@ -32,6 +32,34 @@ const initialForm = {
   is_active: true,
 };
 
+const normalizeSnapshot = (formState, categories, photos) => {
+  const normalizedForm = {
+    ...formState,
+    title: String(formState.title ?? ""),
+    description: String(formState.description ?? ""),
+    price: String(formState.price ?? ""),
+    price_type: String(formState.price_type ?? ""),
+    estimated_duration: String(formState.estimated_duration ?? ""),
+    location: String(formState.location ?? ""),
+    requirements: String(formState.requirements ?? ""),
+    discount_recurring: String(formState.discount_recurring ?? ""),
+    materials_included: Boolean(formState.materials_included),
+    discount_aplied: Boolean(formState.discount_aplied),
+    is_active: Boolean(formState.is_active),
+  };
+
+  const normalizedCategories = [...categories].map(String).sort();
+  const normalizedPhotos = photos
+    .map((photo) => photo.trim())
+    .filter(Boolean);
+
+  return {
+    form: normalizedForm,
+    categories: normalizedCategories,
+    photos: normalizedPhotos,
+  };
+};
+
 export default function ManageServiceView() {
   const router = useRouter();
   const { service_id: serviceId } = useParams();
@@ -48,6 +76,11 @@ export default function ManageServiceView() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [serviceOwnerId, setServiceOwnerId] = useState("");
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const actionsRef = useRef(null);
+  const [initialSnapshot, setInitialSnapshot] = useState(null);
 
   const hasAccess = Boolean(currentUser?._id);
 
@@ -77,6 +110,7 @@ export default function ManageServiceView() {
     const loadService = async () => {
       setLoadingService(true);
       setPageError("");
+      setInitialSnapshot(null);
       try {
         const data = await fetchJSON(`/services/${serviceId}`, {
           suppressRedirect: true,
@@ -95,7 +129,7 @@ export default function ManageServiceView() {
         }
 
         setServiceOwnerId(ownerId);
-        setForm({
+        const loadedForm = {
           title: data.title || "",
           description: data.description || "",
           price: data.price ?? "",
@@ -110,17 +144,23 @@ export default function ManageServiceView() {
               ? String(data.discount_recurring)
               : "",
           is_active: data.is_active !== undefined ? Boolean(data.is_active) : true,
-        });
+        };
 
-        setSelectedCategories(
+        const loadedCategories =
           Array.isArray(data.categores_id)
             ? data.categores_id.map((id) => String(id))
-            : []
-        );
-        setPhotoInputs(
+            : [];
+
+        const loadedPhotos =
           Array.isArray(data.photos) && data.photos.length
             ? data.photos.slice(0, MAX_PHOTOS)
-            : [""]
+            : [""];
+
+        setForm(loadedForm);
+        setSelectedCategories(loadedCategories);
+        setPhotoInputs(loadedPhotos);
+        setInitialSnapshot(
+          normalizeSnapshot(loadedForm, loadedCategories, loadedPhotos)
         );
       } catch (err) {
         if (!active) return;
@@ -136,6 +176,18 @@ export default function ManageServiceView() {
       active = false;
     };
   }, [serviceId, currentUserId, authChecking]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionsRef.current && !actionsRef.current.contains(event.target)) {
+        setActionsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleFormChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -277,6 +329,33 @@ export default function ManageServiceView() {
     }
   };
 
+  const handleDeleteService = async () => {
+    if (!serviceId) return;
+    setDeleting(true);
+    setFormError("");
+    try {
+      await fetchJSON(`/services/${serviceId}`, {
+        method: "DELETE",
+        suppressRedirect: true,
+      });
+      router.push("/myservices");
+    } catch (err) {
+      setFormError(err.message || "No se pudo eliminar el servicio.");
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const currentSnapshot = useMemo(
+    () => normalizeSnapshot(form, selectedCategories, photoInputs),
+    [form, selectedCategories, photoInputs]
+  );
+
+  const isDirty =
+    initialSnapshot &&
+    JSON.stringify(currentSnapshot) !== JSON.stringify(initialSnapshot);
+
   if (authChecking) {
     return (
       <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">
@@ -358,22 +437,41 @@ export default function ManageServiceView() {
               Actualiza precios, categorías, fotos y disponibilidad para mantener tu servicio al día.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => router.push("/myservices")}
-              className="rounded-2xl border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Cancelar
-            </button>
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
               form="edit-service-form"
-              disabled={saving}
+              disabled={saving || !isDirty}
               className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {saving ? "Guardando..." : "Guardar cambios"}
             </button>
+            <div className="relative" ref={actionsRef}>
+              <button
+                type="button"
+                onClick={() => setActionsOpen((open) => !open)}
+                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-[#0f2333] text-white transition hover:border-emerald-500/60 hover:text-emerald-200"
+                aria-haspopup="menu"
+                aria-expanded={actionsOpen}
+              >
+                <i className="fa-solid fa-ellipsis-vertical" />
+              </button>
+              {actionsOpen ? (
+                <div className="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-2xl border border-white/10 bg-[#0d1b28] shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionsOpen(false);
+                      setShowDeleteModal(true);
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-red-200 transition hover:bg-red-500/10"
+                  >
+                    <i className="fa-solid fa-trash-can text-xs" />
+                    Eliminar servicio
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </header>
 
@@ -651,6 +749,41 @@ export default function ManageServiceView() {
           </aside>
         </form>
       </div>
+      {showDeleteModal ? (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0d1b28] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-500/10 text-red-300">
+                <i className="fa-solid fa-triangle-exclamation" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">Eliminar servicio</h3>
+                <p className="mt-1 text-sm text-slate-300">
+                  ¿Seguro que deseas eliminar este servicio? Esta acción no se puede deshacer.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="rounded-2xl border border-white/15 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                disabled={deleting}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteService}
+                className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={deleting}
+              >
+                {deleting ? "Eliminando..." : "Eliminar servicio"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
