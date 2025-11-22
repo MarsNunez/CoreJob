@@ -206,17 +206,17 @@ export default function ProfileQuickBooking({
           </button>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#09131d] px-4 py-3 text-sm text-slate-300">
-          <p className="font-semibold text-white">Contacto directo</p>
-          <p className="mt-1 text-base text-emerald-200">
-            {contactPhone || "Agrega un número para que puedan llamarte"}
-          </p>
-          {locationLabel ? (
-            <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">
-              {locationLabel}
-            </p>
-          ) : null}
-        </div>
+        {contactPhone ? (
+          <div className="rounded-2xl border border-white/10 bg-[#09131d] px-4 py-3 text-sm text-slate-300">
+            <p className="font-semibold text-white">Contacto directo</p>
+            <p className="mt-1 text-base text-emerald-200">{contactPhone}</p>
+            {locationLabel ? (
+              <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">
+                {locationLabel}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </form>
     </aside>
   );

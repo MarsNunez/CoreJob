@@ -41,22 +41,20 @@ export default function ProfileServiceArea({ location = {} }) {
     {
       icon: "fa-solid fa-location-dot",
       label: "Dirección",
-      title: addressTitle || "Ubicación no especificada",
-      subtitle:
-        addressSubtitle ||
-        "Añade tu ciudad y país para que los clientes puedan ubicarte.",
+      title: addressTitle || "",
+      subtitle: addressSubtitle || "",
     },
     {
       icon: "fa-solid fa-paper-plane",
       label: "Radio de servicio",
-      title: serviceRadius || "Radio no definido",
-      subtitle: "Actualiza este dato desde tu panel de servicios.",
+      title: serviceRadius || "",
+      subtitle: "",
     },
     {
       icon: "fa-solid fa-truck",
       label: "Transporte",
-      title: transport || "No especificado",
-      subtitle: "Cuéntale a tus clientes cómo te desplazas.",
+      title: transport || "",
+      subtitle: "",
     },
   ];
 
@@ -64,16 +62,20 @@ export default function ProfileServiceArea({ location = {} }) {
     {
       icon: "fa-regular fa-clock",
       label: "Respuesta promedio",
-      title: responseTime || "Menos de 24 horas",
-      subtitle: "Comparte tus tiempos habituales.",
+      title: responseTime || "",
+      subtitle: "",
     },
     {
       icon: "fa-solid fa-bolt",
       label: "Emergencias",
-      title: emergency || "Consulta disponibilidad previa",
+      title: emergency || "",
       subtitle: "",
     },
   ];
+
+  const visibleInfoRows = infoRows.filter((row) => Boolean(row.title));
+  const visibleTimingRows = timingRows.filter((row) => Boolean(row.title));
+  const allRows = [...visibleInfoRows, ...visibleTimingRows];
 
   return (
     <section className="rounded-[32px] border border-white/10 bg-[#0b1621] p-6 shadow-[0_25px_55px_rgba(0,0,0,0.45)]">
@@ -111,33 +113,13 @@ export default function ProfileServiceArea({ location = {} }) {
         )}
       </div>
 
-      <div className="mt-6 grid gap-8 md:grid-cols-2">
-        <div className="space-y-5 text-sm text-slate-200">
+      {allRows.length > 0 && (
+        <div className="mt-6 space-y-5 text-sm text-slate-200">
           <h3 className="text-base font-semibold text-white">
-            Información de ubicación
+            Información adicional
           </h3>
-          <div className="space-y-3">
-            {infoRows.map((row) => (
-              <div key={row.label} className="flex items-start gap-3">
-                <i className={`${row.icon} mt-1 text-emerald-400`}></i>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                    {row.label}
-                  </p>
-                  <p className="font-semibold text-white">{row.title}</p>
-                  <p className="text-slate-300">{row.subtitle}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-5 text-sm text-slate-200">
-          <h3 className="text-base font-semibold text-white">
-            Tiempo de respuesta
-          </h3>
-          <div className="space-y-3">
-            {timingRows.map((row) => (
+          <div className="grid gap-6 md:grid-cols-2">
+            {allRows.map((row) => (
               <div key={row.label} className="flex items-start gap-3">
                 <i className={`${row.icon} mt-1 text-emerald-400`}></i>
                 <div>
@@ -153,7 +135,7 @@ export default function ProfileServiceArea({ location = {} }) {
             ))}
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

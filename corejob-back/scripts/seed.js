@@ -79,8 +79,9 @@ const seedDatabase = async () => {
       password,
       role: "provider",
       phone: "+34 600 111 222",
-      location_country: "España",
-      location_city: "Madrid",
+      phone_public: true,
+      location_country: "Perú",
+      location_department: "Lima",
       is_verified: true,
     },
     {
@@ -89,8 +90,9 @@ const seedDatabase = async () => {
       password,
       role: "provider",
       phone: "+34 600 333 444",
-      location_country: "España",
-      location_city: "Barcelona",
+      phone_public: true,
+      location_country: "Perú",
+      location_department: "Cusco",
       is_verified: true,
     },
     {
@@ -99,8 +101,9 @@ const seedDatabase = async () => {
       password,
       role: "client",
       phone: "+34 600 555 666",
-      location_country: "España",
-      location_city: "Madrid",
+      phone_public: true,
+      location_country: "Perú",
+      location_department: "Arequipa",
     },
     {
       full_name: "Helena Ramos",
@@ -108,8 +111,9 @@ const seedDatabase = async () => {
       password,
       role: "client",
       phone: "+34 600 777 888",
-      location_country: "España",
-      location_city: "Sevilla",
+      phone_public: true,
+      location_country: "Perú",
+      location_department: "Piura",
     },
   ]);
   console.log(`👥 Usuarios creados: ${users.length}`);

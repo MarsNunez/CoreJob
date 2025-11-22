@@ -34,6 +34,18 @@ const ProfileSchema = new Schema(
       enum: ["km", "m"],
       default: "km",
     },
+    service_price_min: {
+      type: Number,
+      min: 0,
+    },
+    service_price_max: {
+      type: Number,
+      min: 0,
+    },
+    service_price_currency: {
+      type: String,
+      default: "PEN",
+    },
     service_lat: {
       type: Number,
     },

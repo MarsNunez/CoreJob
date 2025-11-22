@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { PERU_DEPARTMENTS } from "@/constants/peruLocations";
 import { fetchJSON, setAuthSession } from "../../lib/api.js";
 
 const initialForm = {
@@ -10,8 +11,9 @@ const initialForm = {
   email: "",
   phone: "",
   role: "client",
-  location_country: "",
-  location_city: "",
+  location_country: "Perú",
+  location_department: "",
+  phone_public: true,
   password: "",
   confirmPassword: "",
 };
@@ -166,8 +168,9 @@ export default function RegisterPage() {
         email: form.email,
         phone: form.phone,
         role: form.role,
-        location_country: form.location_country,
-        location_city: form.location_city,
+        location_country: form.location_country || "Perú",
+        location_department: form.location_department,
+        phone_public: form.phone_public,
         password: form.password,
       };
       const data = await fetchJSON("/users", {
@@ -326,24 +329,31 @@ export default function RegisterPage() {
                       </label>
                       <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
                         País
-                        <input
+                        <select
                           name="location_country"
-                          type="text"
                           className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                          value={form.location_country}
+                          value={form.location_country || "Perú"}
                           onChange={handleChange}
-                        />
+                        >
+                          <option value="Perú">Perú</option>
+                        </select>
                       </label>
                     </div>
                     <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                      Ciudad
-                      <input
-                        name="location_city"
-                        type="text"
+                      Departamento
+                      <select
+                        name="location_department"
                         className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                        value={form.location_city}
+                        value={form.location_department}
                         onChange={handleChange}
-                      />
+                      >
+                        <option value="">Selecciona un departamento</option>
+                        {PERU_DEPARTMENTS.map((department) => (
+                          <option key={department} value={department}>
+                            {department}
+                          </option>
+                        ))}
+                      </select>
                     </label>
                   </div>
                 )}

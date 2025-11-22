@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { PERU_DEPARTMENTS } from "@/constants/peruLocations";
+import { PRICE_CURRENCIES } from "@/constants/currencies";
 import { fetchJSON, getCurrentUser, getToken, setAuthSession } from "@/lib/api";
 
 export default function EditProfilePage() {
@@ -23,8 +25,9 @@ export default function EditProfilePage() {
     full_name: "",
     email: "",
     phone: "",
-    location_country: "",
-    location_city: "",
+    location_country: "Perú",
+    location_department: "",
+    phone_public: true,
     password: "",
     confirmPassword: "",
   });
@@ -35,6 +38,10 @@ export default function EditProfilePage() {
     service_address: "",
     service_radius_value: "",
     service_radius_unit: "km",
+    service_price_min: "",
+    service_price_max: "",
+    service_price_currency: "PEN",
+    service_price_enabled: false,
     service_transport: "",
     service_response_time: "",
     service_emergency: "",
@@ -44,6 +51,7 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [priceError, setPriceError] = useState("");
   const [mapModalOpen, setMapModalOpen] = useState(false);
 
   // Guard + initial fetch
@@ -80,11 +88,19 @@ export default function EditProfilePage() {
           full_name: currentUser.full_name || "",
           email: currentUser.email || "",
           phone: currentUser.phone || "",
-          location_country: currentUser.location_country || "",
-          location_city: currentUser.location_city || "",
+          location_country: currentUser.location_country || "Perú",
+          location_department:
+            currentUser.location_department || currentUser.location_city || "",
+          phone_public:
+            typeof currentUser.phone_public === "boolean"
+              ? currentUser.phone_public
+              : true,
         }));
 
         if (matchedProfile) {
+          const hasManualPrice =
+            typeof matchedProfile.service_price_min === "number" ||
+            typeof matchedProfile.service_price_max === "number";
           setProfileForm({
             bio: matchedProfile.bio || "",
             profile_picture: matchedProfile.profile_picture || "",
@@ -94,8 +110,18 @@ export default function EditProfilePage() {
               matchedProfile.service_radius_value !== undefined
                 ? String(matchedProfile.service_radius_value)
                 : "",
-            service_radius_unit:
-              matchedProfile.service_radius_unit || "km",
+            service_radius_unit: matchedProfile.service_radius_unit || "km",
+            service_price_min:
+              matchedProfile.service_price_min !== undefined
+                ? String(matchedProfile.service_price_min)
+                : "",
+            service_price_max:
+              matchedProfile.service_price_max !== undefined
+                ? String(matchedProfile.service_price_max)
+                : "",
+            service_price_currency:
+              matchedProfile.service_price_currency || "PEN",
+            service_price_enabled: hasManualPrice,
             service_transport: matchedProfile.service_transport || "",
             service_response_time: matchedProfile.service_response_time || "",
             service_emergency: matchedProfile.service_emergency || "",
@@ -165,6 +191,15 @@ export default function EditProfilePage() {
     profileForm.service_lng,
   ]);
 
+  const storedMapPosition = useMemo(() => {
+    const lat = parseFloat(profileForm.service_lat);
+    const lng = parseFloat(profileForm.service_lng);
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+      return [lat, lng];
+    }
+    return null;
+  }, [profileForm.service_lat, profileForm.service_lng]);
+
   const handleMapConfirm = ({ address, mapUrl, lat, lng }) => {
     setProfileForm((prev) => ({
       ...prev,
@@ -180,6 +215,7 @@ export default function EditProfilePage() {
     if (!currentUser?._id) return;
     setSaving(true);
     setError("");
+    setPriceError("");
 
     if (userForm.password && userForm.password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres.");
@@ -193,12 +229,37 @@ export default function EditProfilePage() {
       return;
     }
 
+    if (profileForm.service_price_enabled) {
+      const minPriceValue = profileForm.service_price_min.trim();
+      const maxPriceValue = profileForm.service_price_max.trim();
+      if (minPriceValue && Number(minPriceValue) < 0) {
+        setPriceError("El precio mínimo no puede ser negativo.");
+        setSaving(false);
+        return;
+      }
+      if (maxPriceValue && Number(maxPriceValue) < 0) {
+        setPriceError("El precio máximo no puede ser negativo.");
+        setSaving(false);
+        return;
+      }
+      if (
+        minPriceValue &&
+        maxPriceValue &&
+        Number(minPriceValue) > Number(maxPriceValue)
+      ) {
+        setPriceError("El precio mínimo no puede ser mayor que el máximo.");
+        setSaving(false);
+        return;
+      }
+    }
+
     const userPayload = {
       full_name: userForm.full_name.trim(),
       email: userForm.email.trim(),
       phone: userForm.phone.trim(),
-      location_country: userForm.location_country.trim(),
-      location_city: userForm.location_city.trim(),
+      location_country: (userForm.location_country || "Perú").trim(),
+      location_department: userForm.location_department.trim(),
+      phone_public: !!userForm.phone_public,
       ...(userForm.password ? { password: userForm.password } : {}),
     };
 
@@ -210,14 +271,29 @@ export default function EditProfilePage() {
       service_map_url: computedMapUrl,
       service_address: profileForm.service_address.trim(),
       service_lat:
-        profileForm.service_lat === "" ? undefined : Number(profileForm.service_lat),
+        profileForm.service_lat === ""
+          ? undefined
+          : Number(profileForm.service_lat),
       service_lng:
-        profileForm.service_lng === "" ? undefined : Number(profileForm.service_lng),
+        profileForm.service_lng === ""
+          ? undefined
+          : Number(profileForm.service_lng),
       service_radius_value:
         profileForm.service_radius_value === ""
           ? undefined
           : Number(profileForm.service_radius_value),
       service_radius_unit: profileForm.service_radius_unit || "km",
+      service_price_min:
+        profileForm.service_price_enabled &&
+        profileForm.service_price_min !== ""
+          ? Number(profileForm.service_price_min)
+          : null,
+      service_price_max:
+        profileForm.service_price_enabled &&
+        profileForm.service_price_max !== ""
+          ? Number(profileForm.service_price_max)
+          : null,
+      service_price_currency: profileForm.service_price_currency || "PEN",
       service_transport: profileForm.service_transport.trim(),
       service_response_time: profileForm.service_response_time.trim(),
       service_emergency: profileForm.service_emergency.trim(),
@@ -332,25 +408,70 @@ export default function EditProfilePage() {
                   className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
                 />
               </label>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white sm:col-span-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-white">
+                      Mostrar teléfono públicamente
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Controla si aparecerá en el contacto directo de tu perfil.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setUserForm((prev) => ({
+                        ...prev,
+                        phone_public: !prev.phone_public,
+                      }))
+                    }
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition ${
+                      userForm.phone_public
+                        ? "bg-emerald-500"
+                        : "bg-slate-500/60"
+                    }`}
+                    aria-pressed={userForm.phone_public}
+                  >
+                    <span className="sr-only">
+                      Alternar visibilidad del teléfono
+                    </span>
+                    <span
+                      className={`inline-block h-5 w-5 rounded-full bg-white shadow transition ${
+                        userForm.phone_public
+                          ? "translate-x-5"
+                          : "translate-x-1"
+                      }`}
+                    ></span>
+                  </button>
+                </div>
+              </div>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
                 País
-                <input
-                  type="text"
+                <select
                   name="location_country"
-                  value={userForm.location_country}
+                  value={userForm.location_country || "Perú"}
                   onChange={handleUserChange}
                   className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                />
+                >
+                  <option value="Perú">Perú</option>
+                </select>
               </label>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Ciudad
-                <input
-                  type="text"
-                  name="location_city"
-                  value={userForm.location_city}
+                Departamento
+                <select
+                  name="location_department"
+                  value={userForm.location_department}
                   onChange={handleUserChange}
                   className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                />
+                >
+                  <option value="">Selecciona un departamento</option>
+                  {PERU_DEPARTMENTS.map((department) => (
+                    <option key={department} value={department}>
+                      {department}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
                 Nueva contraseña
@@ -449,7 +570,10 @@ export default function EditProfilePage() {
                 Abrir mapa interactivo
               </button>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Dirección
+                <span className="flex items-center gap-2 font-semibold text-white/90">
+                  <i className="fa-solid fa-location-dot text-emerald-400"></i>
+                  Dirección
+                </span>
                 <input
                   type="text"
                   name="service_address"
@@ -473,23 +597,12 @@ export default function EditProfilePage() {
                   Si lo dejas vacío generaremos el mapa con la dirección.
                 </p>
               </label>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-[#0f2333] px-3 py-2 text-xs text-slate-200">
-                  <p className="text-slate-400">Latitud</p>
-                  <p className="font-semibold text-white">
-                    {profileForm.service_lat || "—"}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-[#0f2333] px-3 py-2 text-xs text-slate-200">
-                  <p className="text-slate-400">Longitud</p>
-                  <p className="font-semibold text-white">
-                    {profileForm.service_lng || "—"}
-                  </p>
-                </div>
-              </div>
               <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
                 <label className="flex flex-col gap-2 text-sm text-slate-200">
-                  Radio de servicio
+                  <span className="flex items-center gap-2 font-semibold text-white/90">
+                    <i className="fa-solid fa-paper-plane text-emerald-400"></i>
+                    Radio de servicio
+                  </span>
                   <input
                     type="number"
                     min="0"
@@ -514,7 +627,113 @@ export default function EditProfilePage() {
                 </label>
               </div>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Transporte
+                Tipo de moneda preferida
+                <select
+                  name="service_price_currency"
+                  value={profileForm.service_price_currency}
+                  onChange={handleProfileChange}
+                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                >
+                  {PRICE_CURRENCIES.map((currency) => (
+                    <option key={currency.code} value={currency.code}>
+                      {currency.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-400">
+                  Usaremos esta moneda para tus servicios y estimaciones de
+                  precio.
+                </p>
+              </label>
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-[#0f2333] p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <i className="fa-solid fa-tag text-emerald-400"></i>
+                    Rango de precios estimado
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPriceError("");
+                      setProfileForm((prev) => {
+                        const enabled = !prev.service_price_enabled;
+                        return {
+                          ...prev,
+                          service_price_enabled: enabled,
+                          ...(enabled
+                            ? {}
+                            : {
+                                service_price_min: "",
+                                service_price_max: "",
+                              }),
+                        };
+                      });
+                    }}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition ${
+                      profileForm.service_price_enabled
+                        ? "bg-emerald-500"
+                        : "bg-slate-500/60"
+                    }`}
+                    aria-pressed={profileForm.service_price_enabled}
+                  >
+                    <span className="sr-only">Alternar rango de precios</span>
+                    <span
+                      className={`inline-block h-5 w-5 rounded-full bg-white shadow transition ${
+                        profileForm.service_price_enabled
+                          ? "translate-x-5"
+                          : "translate-x-1"
+                      }`}
+                    ></span>
+                  </button>
+                </div>
+                {profileForm.service_price_enabled ? (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="flex flex-col gap-2 text-sm text-slate-200">
+                        Precio mínimo
+                        <input
+                          type="number"
+                          min="0"
+                          name="service_price_min"
+                          value={profileForm.service_price_min}
+                          onChange={handleProfileChange}
+                          className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                          placeholder="Ej. 100"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-2 text-sm text-slate-200">
+                        Precio máximo
+                        <input
+                          type="number"
+                          min="0"
+                          name="service_price_max"
+                          value={profileForm.service_price_max}
+                          onChange={handleProfileChange}
+                          className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                          placeholder="Ej. 250"
+                        />
+                      </label>
+                    </div>
+                    {priceError ? (
+                      <p className="text-xs text-red-300">{priceError}</p>
+                    ) : (
+                      <p className="text-xs text-slate-400">
+                        Se mostrará en tu encabezado como referencia rápida para
+                        los clientes.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-slate-400">
+                    Actívalo si quieres mostrar un rango estimado en tu perfil.
+                  </p>
+                )}
+              </div>
+              <label className="flex flex-col gap-2 text-sm text-slate-200">
+                <span className="flex items-center gap-2 font-semibold text-white/90">
+                  <i className="fa-solid fa-truck text-emerald-400"></i>
+                  Transporte
+                </span>
                 <input
                   type="text"
                   name="service_transport"
@@ -525,7 +744,10 @@ export default function EditProfilePage() {
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Respuesta promedio
+                <span className="flex items-center gap-2 font-semibold text-white/90">
+                  <i className="fa-regular fa-clock text-emerald-400"></i>
+                  Respuesta promedio
+                </span>
                 <input
                   type="text"
                   name="service_response_time"
@@ -536,7 +758,10 @@ export default function EditProfilePage() {
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Emergencias
+                <span className="flex items-center gap-2 font-semibold text-white/90">
+                  <i className="fa-solid fa-bolt text-emerald-400"></i>
+                  Emergencias
+                </span>
                 <input
                   type="text"
                   name="service_emergency"
@@ -584,6 +809,7 @@ export default function EditProfilePage() {
         onClose={() => setMapModalOpen(false)}
         onConfirm={handleMapConfirm}
         initialAddress={profileForm.service_address}
+        initialPosition={storedMapPosition || undefined}
       />
     </section>
   );

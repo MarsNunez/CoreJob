@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -11,6 +11,47 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+const DEFAULT_POSITION = [40.4168, -3.7038]; // Madrid por defecto
+
+const formatNominatimAddress = (address = {}) => {
+  const parts = [];
+  const department = address.state || address.region || address.state_district;
+  if (department) parts.push(department);
+
+  const city =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.municipality ||
+    address.hamlet;
+  if (city) parts.push(city);
+
+  const district =
+    address.city_district ||
+    address.district ||
+    address.suburb ||
+    address.neighbourhood;
+  if (district) parts.push(district);
+
+  const road = [address.road, address.house_number].filter(Boolean).join(" ");
+  if (road) parts.push(road);
+
+  return parts.filter(Boolean).join(", ");
+};
+
+const reverseGeocode = async ([lat, lng]) => {
+  const resp = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=es`
+  );
+  if (!resp.ok) {
+    throw new Error("No se pudo obtener la dirección exacta.");
+  }
+  const data = await resp.json();
+  const formatted =
+    formatNominatimAddress(data.address) || data.display_name || "";
+  return formatted;
+};
 
 const markerIcon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -65,22 +106,56 @@ export default function MapPickerModal({
   initialPosition,
   initialAddress,
 }) {
-  const [position, setPosition] = useState(initialPosition || [40.4168, -3.7038]); // Madrid por defecto
+  const [position, setPosition] = useState(initialPosition || DEFAULT_POSITION);
   const [address, setAddress] = useState(initialAddress || "");
+  const [autoAddress, setAutoAddress] = useState("");
   const [searching, setSearching] = useState(false);
+  const [resolvingAddress, setResolvingAddress] = useState(false);
   const [error, setError] = useState("");
+  const addressEditedRef = useRef(Boolean(initialAddress));
   const mapKey = useMemo(
     () => `${open ? "open" : "closed"}-${initialAddress || "addr"}`,
     [open, initialAddress]
   );
 
+  const updatePosition = (coords) => {
+    setPosition(coords);
+    addressEditedRef.current = false;
+  };
+
   useEffect(() => {
     if (open) {
       setError("");
-      setPosition(initialPosition || [40.4168, -3.7038]);
+      setPosition(initialPosition || DEFAULT_POSITION);
       setAddress(initialAddress || "");
+      setAutoAddress("");
+      addressEditedRef.current = Boolean(initialAddress);
     }
   }, [open, initialPosition, initialAddress]);
+
+  useEffect(() => {
+    if (!open || !position) return;
+    let cancelled = false;
+    const fetchAddress = async () => {
+      setResolvingAddress(true);
+      try {
+        const formatted = await reverseGeocode(position);
+        if (cancelled) return;
+        setAutoAddress(formatted);
+        if (!addressEditedRef.current) {
+          setAddress(formatted);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!cancelled) setResolvingAddress(false);
+      }
+    };
+    fetchAddress();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, position]);
 
   const geocode = async () => {
     if (!address.trim()) return;
@@ -95,7 +170,7 @@ export default function MapPickerModal({
       const data = await resp.json();
       if (data && data.length > 0) {
         const best = data[0];
-        setPosition([Number(best.lat), Number(best.lon)]);
+        updatePosition([Number(best.lat), Number(best.lon)]);
       } else {
         setError("No se encontró esa dirección. Intenta con más detalles.");
       }
@@ -106,14 +181,25 @@ export default function MapPickerModal({
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!position) {
       setError("Selecciona una ubicación en el mapa.");
       return;
     }
+    setError("");
     const mapUrl = `https://www.google.com/maps?q=${position[0]},${position[1]}&output=embed`;
+    let finalAddress = address.trim() || autoAddress.trim();
+
+    if (!finalAddress) {
+      try {
+        finalAddress = await reverseGeocode(position);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     onConfirm({
-      address: address.trim(),
+      address: finalAddress,
       lat: position[0],
       lng: position[1],
       mapUrl,
@@ -159,7 +245,7 @@ export default function MapPickerModal({
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <LocationMarker position={position} onSelect={setPosition} />
+              <LocationMarker position={position} onSelect={updatePosition} />
               <ResizeOnShow deps={[open, position]} />
               <FlyToPosition position={position} />
             </MapContainer>
@@ -172,7 +258,10 @@ export default function MapPickerModal({
                 <input
                   type="text"
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  onChange={(e) => {
+                    addressEditedRef.current = true;
+                    setAddress(e.target.value);
+                  }}
                   className="flex-1 rounded-2xl border border-white/10 bg-[#0f2333] px-3 py-2 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
                   placeholder="Ej. Calle, ciudad, país"
                 />
@@ -202,6 +291,11 @@ export default function MapPickerModal({
             {error && (
               <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
                 {error}
+              </div>
+            )}
+            {resolvingAddress && (
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-200">
+                Obteniendo dirección precisa...
               </div>
             )}
 

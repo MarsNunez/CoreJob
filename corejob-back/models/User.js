@@ -34,7 +34,11 @@ const UserSchema = new Schema(
       default: false,
     },
     location_country: String,
-    location_city: String,
+    location_department: String,
+    phone_public: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

@@ -11,22 +11,30 @@ import ProfileServiceArea from "@/components/ProfileServiceArea";
 import ProfileAbout from "@/components/ProfileAbout";
 import ProfileQuickBooking from "@/components/ProfileQuickBooking";
 import { fetchJSON, getCurrentUser } from "@/lib/api";
+import { PRICE_CURRENCY_MAP } from "@/constants/currencies";
 
 const FALLBACK_AVATAR =
   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&q=80";
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80";
 
-const formatPrice = (value) => {
-  if (typeof value !== "number") return "Tarifa a coordinar";
+const formatPrice = (value, currencyCode = "PEN") => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "Tarifa a coordinar";
+  }
+  const currencyInfo =
+    PRICE_CURRENCY_MAP[currencyCode] || PRICE_CURRENCY_MAP.PEN;
+  const locale = currencyInfo.locale || "es-PE";
+  const currency = currencyInfo.code || currencyCode || "PEN";
   try {
-    return new Intl.NumberFormat("es-ES", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "EUR",
+      currency,
       maximumFractionDigits: 0,
     }).format(value);
   } catch {
-    return `€${value}`;
+    const symbol = currencyInfo.symbol || currency;
+    return `${symbol} ${value}`;
   }
 };
 
@@ -154,21 +162,36 @@ export default function ProfileView() {
       });
   }, [services]);
 
-  const priceRange = useMemo(() => {
-    if (!visibleServices.length) return "Tarifa a coordinar";
-    const prices = visibleServices
-      .map((service) => Number(service.price))
-      .filter((value) => !Number.isNaN(value));
-    if (!prices.length) return "Tarifa a coordinar";
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    return min === max
-      ? formatPrice(min)
-      : `${formatPrice(min)} - ${formatPrice(max)}`;
-  }, [services]);
+  const manualPriceRange = useMemo(() => {
+    if (!profileData) return "";
+    const min = profileData.service_price_min;
+    const max = profileData.service_price_max;
+    if (typeof min !== "number" && typeof max !== "number") return "";
+    const currencyCode = profileData.service_price_currency || "PEN";
+    const normalizedMin =
+      typeof min === "number" && !Number.isNaN(min) ? min : null;
+    const normalizedMax =
+      typeof max === "number" && !Number.isNaN(max) ? max : null;
+    if (normalizedMin !== null && normalizedMax !== null) {
+      return normalizedMin === normalizedMax
+        ? formatPrice(normalizedMin, currencyCode)
+        : `${formatPrice(normalizedMin, currencyCode)} - ${formatPrice(
+            normalizedMax,
+            currencyCode
+          )}`;
+    }
+    if (normalizedMin !== null)
+      return `Desde ${formatPrice(normalizedMin, currencyCode)}`;
+    if (normalizedMax !== null)
+      return `Hasta ${formatPrice(normalizedMax, currencyCode)}`;
+    return "";
+  }, [profileData]);
+
+  const priceRange = manualPriceRange;
 
   const servicesCards = useMemo(() => {
     if (!visibleServices.length) return [];
+    const currencyCode = profileData?.service_price_currency || "PEN";
     return visibleServices.slice(0, 4).map((service) => {
       const firstCategoryId = service.categores_id?.[0];
       const categoryName = categoriesMap.get(String(firstCategoryId))?.name;
@@ -187,11 +210,17 @@ export default function ProfileView() {
           rating: profileData?.rating_average ?? 0,
           reviews: reviews.length,
         },
-        price: formatPrice(service.price),
+        price: formatPrice(service.price, currencyCode),
         duration: service.estimated_duration || "A coordinar",
       };
     });
-  }, [visibleServices, categoriesMap, userData, profileData, reviews.length]);
+  }, [
+    visibleServices,
+    categoriesMap,
+    userData,
+    profileData,
+    reviews.length,
+  ]);
 
   const portfolioProjects = useMemo(() => {
     if (!portfolio.length) return [];
@@ -245,7 +274,10 @@ export default function ProfileView() {
 
   const headerData = useMemo(() => {
     if (!userData) return null;
-    const location = [userData.location_city, userData.location_country]
+    const location = [
+      userData.location_department || userData.location_city,
+      userData.location_country,
+    ]
       .filter(Boolean)
       .join(", ");
     const memberSince = userData.createdAt
@@ -289,14 +321,16 @@ export default function ProfileView() {
   ]);
 
   const serviceAreaData = useMemo(() => {
-    const locationText = [userData?.location_city, userData?.location_country]
+    const locationText = [
+      userData?.location_department || userData?.location_city,
+      userData?.location_country,
+    ]
       .filter(Boolean)
       .join(", ");
 
+    const serviceAddress = profileData?.service_address?.trim() || "";
     const address =
-      profileData?.service_address ||
-      locationText ||
-      "Ubicación no especificada";
+      serviceAddress || locationText || "Ubicación no especificada";
 
     const mapEmbed =
       profileData?.service_map_url ||
@@ -319,32 +353,35 @@ export default function ProfileView() {
         ? Number(profileData.service_lng)
         : null;
 
-    const radiusValue =
+    const rawRadiusValue =
       typeof profileData?.service_radius_value === "number"
         ? profileData.service_radius_value
         : profileData?.service_radius_value
         ? Number(profileData.service_radius_value)
         : null;
+    const radiusValue =
+      rawRadiusValue !== null && !Number.isNaN(rawRadiusValue)
+        ? rawRadiusValue
+        : null;
     const radiusUnit =
       profileData?.service_radius_unit === "m" ? "m" : "km";
+    const serviceTransport = profileData?.service_transport?.trim() || "";
+    const serviceResponseTime =
+      profileData?.service_response_time?.trim() || "";
+    const serviceEmergency =
+      profileData?.service_emergency?.trim() || "";
 
     return {
-      addressTitle: address,
+      addressTitle: serviceAddress,
       addressSubtitle:
         userData?.location_country ||
-        "Agrega tu país y ciudad para mostrarlo en tu perfil",
-      serviceRadius:
-        radiusValue !== null
-          ? `${radiusValue} ${radiusUnit}`
-          : "Actualiza tu radio de servicio",
+        "Agrega tu país y departamento para mostrarlo en tu perfil",
+      serviceRadius: radiusValue !== null ? `${radiusValue} ${radiusUnit}` : "",
       serviceRadiusValue: radiusValue,
       serviceRadiusUnit: radiusUnit,
-      transport:
-        profileData?.service_transport || "Transporte no especificado",
-      responseTime:
-        profileData?.service_response_time || "Menos de 24 horas",
-      emergency:
-        profileData?.service_emergency || "Consulta disponibilidad previa",
+      transport: serviceTransport,
+      responseTime: serviceResponseTime,
+      emergency: serviceEmergency,
       mapEmbedUrl: mapEmbed,
       lat,
       lng,
@@ -359,6 +396,9 @@ export default function ProfileView() {
       label: service.title,
     }));
   }, [visibleServices]);
+
+  const contactPhone =
+    userData?.phone_public === false ? "" : userData?.phone || "";
 
   if (loading) {
     return (
@@ -417,9 +457,12 @@ export default function ProfileView() {
           <div className="hidden lg:block lg:sticky lg:top-8 lg:max-w-sm">
             <ProfileQuickBooking
               serviceOptions={quickBookingOptions}
-              contactPhone={userData?.phone}
+              contactPhone={contactPhone}
               locationLabel={
-                serviceAreaData.locationText || userData?.location_city || ""
+                serviceAreaData.locationText ||
+                userData?.location_department ||
+                userData?.location_city ||
+                ""
               }
             />
           </div>
@@ -428,9 +471,12 @@ export default function ProfileView() {
         <div className="lg:hidden">
           <ProfileQuickBooking
             serviceOptions={quickBookingOptions}
-            contactPhone={userData?.phone}
+            contactPhone={contactPhone}
             locationLabel={
-              serviceAreaData.locationText || userData?.location_city || ""
+              serviceAreaData.locationText ||
+              userData?.location_department ||
+              userData?.location_city ||
+              ""
             }
           />
         </div>
