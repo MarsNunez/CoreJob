@@ -16,6 +16,7 @@ const Filter = ({ onApplyFilters }) => {
   const [department, setDepartment] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [minRating, setMinRating] = useState("");
+  const [maxDistanceKm, setMaxDistanceKm] = useState(0);
   const [dropdownStyle, setDropdownStyle] = useState({
     top: 0,
     left: 0,
@@ -120,6 +121,7 @@ const Filter = ({ onApplyFilters }) => {
         department: department || "",
         maxPrice: maxPrice.trim(),
         minRating: minRating ? Number(minRating) : null,
+        maxDistanceKm: maxDistanceKm > 0 ? maxDistanceKm : null,
       });
     }
   };
@@ -251,6 +253,24 @@ const Filter = ({ onApplyFilters }) => {
             value={maxPrice}
             onChange={(event) => setMaxPrice(event.target.value)}
           />
+
+          <div className="flex flex-col gap-1 text-xs text-emerald-50">
+            <span className="flex items-center gap-2">
+              <i className="fa-solid fa-location-dot text-[0.75rem]" />
+              Radio máximo
+              {maxDistanceKm > 0 ? `: ${maxDistanceKm} km` : " (opcional)"}
+            </span>
+            <input
+              type="range"
+              min="1"
+              max="50"
+              value={maxDistanceKm || 0}
+              onChange={(event) =>
+                setMaxDistanceKm(Number(event.target.value) || 0)
+              }
+              className="w-44 accent-emerald-500"
+            />
+          </div>
 
           <select
             className="bg-[#065f46] rounded-md p-1"
