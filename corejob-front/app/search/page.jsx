@@ -83,9 +83,7 @@ export default function SearchView() {
     };
     loadServices();
   }, []);
-
-  useEffect(() => {
-    if (!activeFilters.maxDistanceKm) return;
+  const requestUserLocation = () => {
     if (userLocation || locating) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setLocationError(
@@ -123,7 +121,20 @@ export default function SearchView() {
     return () => {
       cancelled = true;
     };
-  }, [activeFilters.maxDistanceKm, userLocation, locating]);
+  };
+
+  useEffect(() => {
+    if (!activeFilters.maxDistanceKm) return;
+    requestUserLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilters.maxDistanceKm]);
+
+  useEffect(() => {
+    if (viewMode !== "map") return;
+    if (userLocation || locating || locationError) return;
+    requestUserLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, userLocation, locating, locationError]);
 
   const filteredServices = useMemo(() => {
     const q = query.trim().toLowerCase();
