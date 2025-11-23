@@ -198,9 +198,10 @@ export default function ProfileView() {
       return {
         id: service._id,
         imageSrc: service.photos?.[0] || FALLBACK_IMAGE,
-        gallery: Array.isArray(service.photos) && service.photos.length
-          ? service.photos
-          : [],
+        gallery:
+          Array.isArray(service.photos) && service.photos.length
+            ? service.photos
+            : [],
         category: categoryName || "Servicio",
         distance: service.price_type,
         title: service.title,
@@ -214,13 +215,7 @@ export default function ProfileView() {
         duration: service.estimated_duration || "A coordinar",
       };
     });
-  }, [
-    visibleServices,
-    categoriesMap,
-    userData,
-    profileData,
-    reviews.length,
-  ]);
+  }, [visibleServices, categoriesMap, userData, profileData, reviews.length]);
 
   const portfolioProjects = useMemo(() => {
     if (!portfolio.length) return [];
@@ -259,7 +254,9 @@ export default function ProfileView() {
         id: review._id,
         rating: review.rating ?? 0,
         comment: review.comment || "El cliente no dejó comentarios.",
-        userName: review.is_anonymous ? "Cliente anónimo" : "Cliente verificado",
+        userName: review.is_anonymous
+          ? "Cliente anónimo"
+          : "Cliente verificado",
         serviceTitle: service?.title || "Servicio CoreJob",
         date: review.date
           ? new Date(review.date).toLocaleDateString("es-ES", {
@@ -363,13 +360,11 @@ export default function ProfileView() {
       rawRadiusValue !== null && !Number.isNaN(rawRadiusValue)
         ? rawRadiusValue
         : null;
-    const radiusUnit =
-      profileData?.service_radius_unit === "m" ? "m" : "km";
+    const radiusUnit = profileData?.service_radius_unit === "m" ? "m" : "km";
     const serviceTransport = profileData?.service_transport?.trim() || "";
     const serviceResponseTime =
       profileData?.service_response_time?.trim() || "";
-    const serviceEmergency =
-      profileData?.service_emergency?.trim() || "";
+    const serviceEmergency = profileData?.service_emergency?.trim() || "";
 
     return {
       addressTitle: serviceAddress,
@@ -431,14 +426,6 @@ export default function ProfileView() {
   return (
     <section className="min-h-screen bg-[radial-gradient(circle_at_top,#09131d,#04070a)] px-3 py-8 text-white sm:px-6 lg:px-16">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <Link
-          href="/search"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-[#0b1621] px-4 py-2 text-sm text-emerald-100 transition hover:bg-[#102132] sm:w-fit sm:justify-start"
-        >
-          <i className="fa-solid fa-arrow-left text-xs"></i>
-          Volver a resultados
-        </Link>
-
         {headerData && <ProfileHeader profile={headerData} />}
 
         <ProfilePortfolio projects={portfolioProjects} />

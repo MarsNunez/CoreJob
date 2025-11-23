@@ -26,9 +26,10 @@ export default function Card({
   durationValue = "1 hora",
   gallery = [],
   providerHref,
+  categories = [],
   children,
 }) {
-  const [openInfo, setOpenInfo] = useState(false);
+	  const [openInfo, setOpenInfo] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const galleryImages = useMemo(() => {
     if (Array.isArray(gallery)) {
@@ -37,6 +38,18 @@ export default function Card({
     }
     return imageSrc ? [imageSrc] : [DEFAULT_IMAGE];
   }, [gallery, imageSrc]);
+  const categoryChips = useMemo(
+    () =>
+      Array.isArray(categories)
+        ? categories.map((name) => String(name).trim()).filter(Boolean)
+        : [],
+    [categories]
+  );
+
+  const overlayCategories = useMemo(() => {
+    if (categoryChips.length) return categoryChips;
+    return badgeLeft ? [badgeLeft] : [];
+  }, [categoryChips, badgeLeft]);
 
   const openModal = () => {
     setSlideIndex(0);
@@ -72,10 +85,17 @@ export default function Card({
           alt={title}
           className="h-full w-full object-cover"
         />
-        {badgeLeft ? (
-          <span className="absolute left-4 top-4 rounded-full bg-[#055941] px-4 py-1 text-xs font-semibold">
-            {badgeLeft}
-          </span>
+        {overlayCategories.length ? (
+          <div className="absolute left-4 top-4 flex max-w-[70%] flex-wrap gap-2">
+            {overlayCategories.map((name) => (
+              <span
+                key={name}
+                className="rounded-full bg-[#055941] px-3 py-1 text-xs font-semibold"
+              >
+                {name}
+              </span>
+            ))}
+          </div>
         ) : null}
         {badgeRight ? (
           <span className="absolute right-4 top-4 rounded-full bg-white/80 px-4 py-1 text-xs font-semibold text-[#1c1c1c]">
@@ -84,12 +104,12 @@ export default function Card({
         ) : null}
       </div>
 
-      <div className={contentWrapperClasses}>
-        {children ?? (
-          <>
-            <h3 className="text-lg font-semibold leading-tight text-left line-clamp-2 min-h-[3.5rem]">
-              {title}
-            </h3>
+	      <div className={contentWrapperClasses}>
+	        {children ?? (
+	          <>
+	            <h3 className="text-lg font-semibold leading-tight text-left line-clamp-2 min-h-[3.5rem]">
+	              {title}
+	            </h3>
 
             <div className="flex items-center gap-4 text-sm">
               <img
@@ -111,15 +131,15 @@ export default function Card({
                   )}
                   <i className="fa-solid fa-circle-check text-green-600"></i>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-slate-300">
-                  <i className="fa-solid fa-star text-yellow-400"></i>
-                  <span className="font-semibold text-white">
-                    {provider.rating}
-                  </span>
-                  <span>({provider.reviews})</span>
-                </div>
-              </div>
-            </div>
+	                <div className="flex items-center gap-1 text-xs text-slate-300">
+	                  <i className="fa-solid fa-star text-yellow-400"></i>
+	                  <span className="font-semibold text-white">
+	                    {provider.rating}
+	                  </span>
+	                  <span>({provider.reviews})</span>
+	                </div>
+	              </div>
+	            </div>
 
             <div className="space-y-1 text-sm text-slate-200">
               <div className="flex justify-between">

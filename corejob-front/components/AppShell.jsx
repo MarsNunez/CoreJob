@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Sidebar from "./Sidebar.jsx";
+import Navbar from "./Navbar.jsx";
 
 const HIDE_SIDEBAR_PATHS = ["/login", "/register"];
 
@@ -12,13 +12,17 @@ export default function AppShell({ children }) {
   );
 
   if (!showSidebar) {
-    return <main className="min-h-screen w-full bg-[var(--background)]">{children}</main>;
+    return (
+      <main className="min-h-screen w-full bg-[var(--background)]">
+        {children}
+      </main>
+    );
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--background)]">
-      <Sidebar />
-      <main className="flex-1">{children}</main>
+    <div className="min-h-screen bg-[var(--background)]">
+      <Navbar />
+      <main>{children}</main>
     </div>
   );
 }

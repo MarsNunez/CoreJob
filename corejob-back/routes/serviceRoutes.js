@@ -23,6 +23,14 @@ const serviceWithOwnerPipeline = [
     },
   },
   { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: "categories",
+      localField: "categores_id",
+      foreignField: "_id",
+      as: "categories",
+    },
+  },
 ];
 
 const mapServiceOwner = (serviceDoc) => {

@@ -31,6 +31,13 @@ export default function SearchView() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeFilters, setActiveFilters] = useState({
+    categoryIds: [],
+    country: "",
+    department: "",
+    maxPrice: "",
+    minRating: null,
+  });
 
   useEffect(() => {
     const loadServices = async () => {
@@ -50,22 +57,70 @@ export default function SearchView() {
 
   const filteredServices = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return services;
+    const {
+      categoryIds,
+      country,
+      department,
+      maxPrice,
+      minRating,
+    } = activeFilters;
+
     return services.filter((service) => {
       const title = String(service.title || "").toLowerCase();
-      const desc = String(service.description || "").toLowerCase();
-      const location = String(service.location || "").toLowerCase();
-      return (
-        title.includes(q) ||
-        desc.includes(q) ||
-        location.includes(q)
-      );
+      if (q && !title.includes(q)) {
+        return false;
+      }
+
+      const owner = service.user || null;
+      const profile = service.profile || null;
+
+      if (Array.isArray(categoryIds) && categoryIds.length) {
+        const serviceCategoryIds = Array.isArray(service.categores_id)
+          ? service.categores_id.map((id) => String(id))
+          : [];
+        const hasCategory = categoryIds.some((id) =>
+          serviceCategoryIds.includes(String(id))
+        );
+        if (!hasCategory) return false;
+      }
+
+      if (country && owner?.location_country !== country) {
+        return false;
+      }
+
+      if (department && owner?.location_department !== department) {
+        return false;
+      }
+
+      const priceValue =
+        service.price === null || service.price === undefined
+          ? null
+          : Number(service.price);
+      if (maxPrice) {
+        const max = Number(maxPrice);
+        if (!Number.isNaN(max)) {
+          if (priceValue === null || priceValue > max) return false;
+        }
+      }
+
+      if (minRating) {
+        const rating =
+          profile?.rating_average === null ||
+          profile?.rating_average === undefined
+            ? null
+            : Number(profile.rating_average);
+        if (rating === null || Number.isNaN(rating) || rating < minRating) {
+          return false;
+        }
+      }
+
+      return true;
     });
-  }, [query, services]);
+  }, [services, query, activeFilters]);
 
   return (
     <section className="p-5">
-      <Filter />
+      <Filter onApplyFilters={setActiveFilters} />
       <div className="max-w-6xl mx-auto">
         <div className="border w-fit border-[#065f46] my-5 rounded-md px-2 py-1 flex items-center gap-2">
           <i className="fa-solid fa-magnifying-glass"></i>
@@ -97,6 +152,11 @@ export default function SearchView() {
                 : [];
               const firstImage =
                 gallery.find((url) => url && url.trim()) || undefined;
+              const categoryNames = Array.isArray(service.categories)
+                ? service.categories
+                    .map((cat) => cat?.name)
+                    .filter(Boolean)
+                : [];
 
               const ownerId =
                 service.user_id ||
@@ -129,11 +189,11 @@ export default function SearchView() {
                 <Card
                   key={service._id}
                   imageSrc={firstImage}
-                  badgeLeft={service.price_type || "Servicio"}
                   badgeRight={service.location || ""}
                   title={service.title || "Servicio"}
                   provider={provider}
                   providerHref={providerHref}
+                  categories={categoryNames}
                   priceLabel="Precio:"
                   priceValue={formatPrice(service.price, service.price_type)}
                   durationLabel="Duración:"
