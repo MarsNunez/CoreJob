@@ -25,6 +25,21 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Leaflet tooltip styling for price markers */
+.leaflet-container .leaflet-tooltip.price-tooltip {
+  background-color: rgba(15, 23, 42, 0.96) !important;
+  color: #e5fdf4 !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid rgba(148, 163, 184, 0.4) !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55) !important;
+  padding: 6px 10px !important;
+}
+
+.leaflet-container .leaflet-tooltip.price-tooltip .leaflet-tooltip-arrow {
+  border-top-color: rgba(15, 23, 42, 0.96) !important;
+}
+
 /* 
 .app-shell {
   min-height: 100vh;

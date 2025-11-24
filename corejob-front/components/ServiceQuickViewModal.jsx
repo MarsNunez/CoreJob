@@ -17,7 +17,7 @@ export default function ServiceQuickViewModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -32,7 +32,7 @@ export default function ServiceQuickViewModal({
         >
           <i className="fa-solid fa-xmark" />
         </button>
-        <div className="mt-6">
+        <div className="mt-2">
           <Card
             layout="horizontal"
             imageSrc={gallery?.[0]}
@@ -50,4 +50,3 @@ export default function ServiceQuickViewModal({
     </div>
   );
 }
-
