@@ -112,7 +112,9 @@ export default function Navbar() {
               <i className="fa-solid fa-briefcase"></i>
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-white">ConectaLA</span>
+              <span className="text-sm font-semibold text-white">
+                ConectaLA.
+              </span>
               <span className="text-[11px] text-emerald-100/70">
                 {roleLabel || (isAuthed ? "Proveedor" : "Invitado")}
               </span>
@@ -121,74 +123,74 @@ export default function Navbar() {
 
           {/* Main navigation (desktop) */}
           <nav className="hidden items-center gap-2 text-xs lg:flex">
-          <NavItem href="/" icon="fa-solid fa-house" label="Inicio" />
-          <NavItem
-            href="/search"
-            icon="fa-solid fa-magnifying-glass"
-            label="Buscar"
-          />
-          {isAuthed && (
-            <>
-              <NavItem
-                href="/myservices"
-                icon="fa-solid fa-suitcase"
-                label="Mis servicios"
-              />
-              <NavItem
-                href="/controlPanel"
-                icon="fa-solid fa-table-columns"
-                label="Control Panel"
-              />
-            </>
-          )}
+            <NavItem href="/" icon="fa-solid fa-house" label="Inicio" />
+            <NavItem
+              href="/search"
+              icon="fa-solid fa-magnifying-glass"
+              label="Buscar"
+            />
+            {isAuthed && (
+              <>
+                <NavItem
+                  href="/myservices"
+                  icon="fa-solid fa-suitcase"
+                  label="Mis servicios"
+                />
+                <NavItem
+                  href="/controlPanel"
+                  icon="fa-solid fa-table-columns"
+                  label="Control Panel"
+                />
+              </>
+            )}
           </nav>
 
           {/* Right side: auth + profile (desktop) */}
           <div className="hidden items-center gap-2 lg:flex">
-          <Link
-            href={profileHref}
-            className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-emerald-50 transition hover:border-emerald-500/60 hover:bg-emerald-500/10 sm:inline-flex"
-          >
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={currentUser?.full_name || "Foto de perfil"}
-                className="h-7 w-7 rounded-full object-cover"
-              />
-            ) : (
-              <i className="fa-solid fa-user text-[0.75rem]" />
-            )}
-            <span className="max-w-[7rem] truncate">
-              {currentUser?.full_name || "Perfil"}
-            </span>
-          </Link>
-
-          {!isAuthed ? (
-            <>
-              <Link
-                href="/register"
-                className="hidden rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-emerald-100 transition hover:bg-white/5 sm:inline-flex"
-              >
-                Registrarse
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500"
-              >
-                <i className="fa-solid fa-right-to-bracket text-[0.75rem]" />
-                <span>Ingresar</span>
-              </Link>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowLogoutConfirm(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-3 py-1.5 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
+            <Link
+              href={profileHref}
+              className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-emerald-50 transition hover:border-emerald-500/60 hover:bg-emerald-500/10 sm:inline-flex"
             >
-              <i className="fa-solid fa-right-from-bracket text-[0.75rem]" />
-              <span>Salir</span>
-            </button>
-          )}
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={currentUser?.full_name || "Foto de perfil"}
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+              ) : (
+                <i className="fa-solid fa-user text-[0.75rem]" />
+              )}
+              <span className="max-w-[7rem] truncate">
+                {currentUser?.full_name || "Perfil"}
+              </span>
+            </Link>
+
+            {!isAuthed ? (
+              <>
+                <Link
+                  href="/register"
+                  className="hidden rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-emerald-100 transition hover:bg-white/5 sm:inline-flex"
+                >
+                  Registrarse
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+                >
+                  <i className="fa-solid fa-right-to-bracket text-[0.75rem]" />
+                  <span>Ingresar</span>
+                </Link>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-3 py-1.5 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
+              >
+                <i className="fa-solid fa-right-from-bracket text-[0.75rem]" />
+                <span>Salir</span>
+              </button>
+            )}
           </div>
 
           {/* Mobile / tablet hamburger + floating menu */}
@@ -196,113 +198,113 @@ export default function Navbar() {
             ref={mobileAreaRef}
             className="relative flex flex-1 items-center justify-end gap-2 lg:hidden"
           >
-          <button
-            type="button"
-            onClick={() => setMobileOpen((prev) => !prev)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-emerald-50 transition hover:border-emerald-500/60 hover:bg-emerald-500/10"
-            aria-label="Abrir menú de navegación"
-          >
-            <i className="fa-solid fa-bars text-sm" />
-          </button>
+            <button
+              type="button"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-emerald-50 transition hover:border-emerald-500/60 hover:bg-emerald-500/10"
+              aria-label="Abrir menú de navegación"
+            >
+              <i className="fa-solid fa-bars text-sm" />
+            </button>
             {mobileOpen && (
-            <div className="absolute right-0 top-11 z-40 w-60 rounded-2xl border border-white/10 bg-[#040f19] p-3 text-xs shadow-[0_18px_40px_rgba(0,0,0,0.6)]">
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">
-                Navegación
-              </div>
-              <div className="flex flex-col gap-1">
-                <Link
-                  href="/"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                >
-                  <i className="fa-solid fa-house text-[0.7rem]" />
-                  <span>Inicio</span>
-                </Link>
-                <Link
-                  href="/search"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                >
-                  <i className="fa-solid fa-magnifying-glass text-[0.7rem]" />
-                  <span>Buscar</span>
-                </Link>
-                {isAuthed && (
-                  <>
-                    <Link
-                      href="/myservices"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                    >
-                      <i className="fa-solid fa-suitcase text-[0.7rem]" />
-                      <span>Mis servicios</span>
-                    </Link>
-                    <Link
-                      href="/controlPanel"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                    >
-                      <i className="fa-solid fa-table-columns text-[0.7rem]" />
-                      <span>Control Panel</span>
-                    </Link>
-                  </>
-                )}
-              </div>
-
-              <div className="mt-3 mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">
-                Cuenta
-              </div>
-              <div className="flex flex-col gap-1">
-                <Link
-                  href={profileHref}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                >
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={currentUser?.full_name || "Foto de perfil"}
-                      className="h-6 w-6 rounded-full object-cover"
-                    />
-                  ) : (
-                    <i className="fa-solid fa-id-badge text-[0.7rem]" />
-                  )}
-                  <span>Ver perfil</span>
-                </Link>
-
-                {!isAuthed ? (
-                  <>
-                    <Link
-                      href="/register"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                    >
-                      <i className="fa-solid fa-user-plus text-[0.7rem]" />
-                      <span>Registrarse</span>
-                    </Link>
-                    <Link
-                      href="/login"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                    >
-                      <i className="fa-solid fa-right-to-bracket text-[0.7rem]" />
-                      <span>Ingresar</span>
-                    </Link>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileOpen(false);
-                      setShowLogoutConfirm(true);
-                    }}
-                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-red-300 hover:bg-red-500/10"
+              <div className="absolute right-0 top-11 z-40 w-60 rounded-2xl border border-white/10 bg-[#040f19] p-3 text-xs shadow-[0_18px_40px_rgba(0,0,0,0.6)]">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">
+                  Navegación
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Link
+                    href="/"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
                   >
-                    <i className="fa-solid fa-right-from-bracket text-[0.7rem]" />
-                    <span>Cerrar sesión</span>
-                  </button>
-                )}
+                    <i className="fa-solid fa-house text-[0.7rem]" />
+                    <span>Inicio</span>
+                  </Link>
+                  <Link
+                    href="/search"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                  >
+                    <i className="fa-solid fa-magnifying-glass text-[0.7rem]" />
+                    <span>Buscar</span>
+                  </Link>
+                  {isAuthed && (
+                    <>
+                      <Link
+                        href="/myservices"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                      >
+                        <i className="fa-solid fa-suitcase text-[0.7rem]" />
+                        <span>Mis servicios</span>
+                      </Link>
+                      <Link
+                        href="/controlPanel"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                      >
+                        <i className="fa-solid fa-table-columns text-[0.7rem]" />
+                        <span>Control Panel</span>
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                <div className="mt-3 mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">
+                  Cuenta
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Link
+                    href={profileHref}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                  >
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={currentUser?.full_name || "Foto de perfil"}
+                        className="h-6 w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <i className="fa-solid fa-id-badge text-[0.7rem]" />
+                    )}
+                    <span>Ver perfil</span>
+                  </Link>
+
+                  {!isAuthed ? (
+                    <>
+                      <Link
+                        href="/register"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                      >
+                        <i className="fa-solid fa-user-plus text-[0.7rem]" />
+                        <span>Registrarse</span>
+                      </Link>
+                      <Link
+                        href="/login"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                      >
+                        <i className="fa-solid fa-right-to-bracket text-[0.7rem]" />
+                        <span>Ingresar</span>
+                      </Link>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        setShowLogoutConfirm(true);
+                      }}
+                      className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-red-300 hover:bg-red-500/10"
+                    >
+                      <i className="fa-solid fa-right-from-bracket text-[0.7rem]" />
+                      <span>Cerrar sesión</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
             )}
           </div>
         </div>
@@ -319,8 +321,8 @@ export default function Navbar() {
                   ¿Cerrar sesión?
                 </h2>
                 <p className="mt-1 text-xs text-slate-300">
-                  Tendrás que volver a iniciar sesión para gestionar tus servicios
-                  y perfil.
+                  Tendrás que volver a iniciar sesión para gestionar tus
+                  servicios y perfil.
                 </p>
               </div>
             </div>
