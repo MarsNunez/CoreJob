@@ -70,6 +70,20 @@ const ServiceSchema = new Schema(
       type: String,
       trim: true,
     },
+    use_custom_location: {
+      type: Boolean,
+      default: false,
+    },
+    service_lat: {
+      type: Number,
+    },
+    service_lng: {
+      type: Number,
+    },
+    service_address: {
+      type: String,
+      trim: true,
+    },
     is_active: {
       type: Boolean,
       default: true,

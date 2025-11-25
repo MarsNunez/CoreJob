@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { fetchJSON } from "@/lib/api";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 
@@ -25,6 +26,10 @@ const initialForm = {
   price_type: priceTypeOptions[0],
   estimated_duration: "",
   location: "",
+  use_custom_location: false,
+  service_lat: "",
+  service_lng: "",
+  service_address: "",
   requirements: "",
   materials_included: false,
   discount_aplied: false,
@@ -41,6 +46,16 @@ const normalizeSnapshot = (formState, categories, photos) => {
     price_type: String(formState.price_type ?? ""),
     estimated_duration: String(formState.estimated_duration ?? ""),
     location: String(formState.location ?? ""),
+    service_address: String(formState.service_address ?? ""),
+    service_lat:
+      formState.service_lat === undefined || formState.service_lat === null
+        ? ""
+        : String(formState.service_lat),
+    service_lng:
+      formState.service_lng === undefined || formState.service_lng === null
+        ? ""
+        : String(formState.service_lng),
+    use_custom_location: Boolean(formState.use_custom_location),
     requirements: String(formState.requirements ?? ""),
     discount_recurring: String(formState.discount_recurring ?? ""),
     materials_included: Boolean(formState.materials_included),
@@ -65,6 +80,13 @@ export default function ManageServiceView() {
   const { service_id: serviceId } = useParams();
   const { user: currentUser, checking: authChecking } = useAuthGuard();
   const currentUserId = currentUser?._id ? String(currentUser._id) : "";
+  const MapPickerModal = useMemo(
+    () =>
+      dynamic(() => import("@/components/MapPickerModal"), {
+        ssr: false,
+      }),
+    []
+  );
   const [form, setForm] = useState(initialForm);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [photoInputs, setPhotoInputs] = useState([""]);
@@ -81,6 +103,7 @@ export default function ManageServiceView() {
   const [deleting, setDeleting] = useState(false);
   const actionsRef = useRef(null);
   const [initialSnapshot, setInitialSnapshot] = useState(null);
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
 
   const hasAccess = Boolean(currentUser?._id);
 
@@ -136,6 +159,16 @@ export default function ManageServiceView() {
           price_type: data.price_type || priceTypeOptions[0],
           estimated_duration: data.estimated_duration || "",
           location: data.location || "",
+          use_custom_location: Boolean(data.use_custom_location),
+          service_lat:
+            data.service_lat !== undefined && data.service_lat !== null
+              ? String(data.service_lat)
+              : "",
+          service_lng:
+            data.service_lng !== undefined && data.service_lng !== null
+              ? String(data.service_lng)
+              : "",
+          service_address: data.service_address || "",
           requirements: data.requirements || "",
           materials_included: Boolean(data.materials_included),
           discount_aplied: Boolean(data.discount_aplied),
@@ -241,7 +274,13 @@ export default function ManageServiceView() {
       setFormError("Describe tu servicio para que los clientes te conozcan.");
       return false;
     }
-    if (!form.location.trim()) {
+    const hasZone = form.location.trim().length > 0;
+    const hasCustomLocation =
+      form.use_custom_location &&
+      ((form.service_address && form.service_address.trim().length > 0) ||
+        (form.service_lat && form.service_lng));
+
+    if (!hasZone && !hasCustomLocation) {
       setFormError("Indica la ubicación o zona de atención.");
       return false;
     }
@@ -305,6 +344,19 @@ export default function ManageServiceView() {
       price: priceValue,
       estimated_duration: form.estimated_duration.trim(),
       location: form.location.trim(),
+      use_custom_location: !!form.use_custom_location,
+      service_lat:
+        form.use_custom_location && form.service_lat !== ""
+          ? Number(form.service_lat)
+          : undefined,
+      service_lng:
+        form.use_custom_location && form.service_lng !== ""
+          ? Number(form.service_lng)
+          : undefined,
+      service_address:
+        form.use_custom_location && form.service_address
+          ? form.service_address.trim()
+          : "",
       requirements: form.requirements.trim(),
       materials_included: form.materials_included,
       discount_aplied: form.discount_aplied,
@@ -552,6 +604,65 @@ export default function ManageServiceView() {
                   placeholder="Ciudad, distrito o zona"
                 />
               </label>
+
+              <div className="rounded-2xl border border-white/10 bg-[#0d1b28] p-4 text-sm text-slate-200">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <p className="font-semibold text-white">
+                      Usar ubicación específica para este servicio
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Si lo activas, este servicio aparecerá en el mapa según la
+                      ubicación que definas aquí y no según tu perfil.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        use_custom_location: !prev.use_custom_location,
+                      }))
+                    }
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition flex-shrink-0 ${
+                      form.use_custom_location
+                        ? "bg-emerald-500"
+                        : "bg-slate-500/60"
+                    }`}
+                    aria-pressed={form.use_custom_location}
+                  >
+                    <span className="sr-only">
+                      Alternar ubicación específica del servicio
+                    </span>
+                    <span
+                      className={`inline-block h-5 w-5 rounded-full bg-white shadow transition ${
+                        form.use_custom_location
+                          ? "translate-x-5"
+                          : "translate-x-1"
+                      }`}
+                    ></span>
+                  </button>
+                </div>
+                {form.use_custom_location && (
+                  <div className="mt-3 space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setLocationModalOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-emerald-500/40 bg-[#0a1f2b] px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400 hover:bg-[#0f2a3a]"
+                    >
+                      <i className="fa-solid fa-map-location-dot text-[0.7rem]" />
+                      Seleccionar ubicación en el mapa
+                    </button>
+                    <p className="text-xs text-slate-400">
+                      {form.service_address
+                        ? form.service_address
+                        : form.service_lat && form.service_lng
+                        ? `Coordenadas seleccionadas: ${form.service_lat}, ${form.service_lng}`
+                        : "Aún no has seleccionado una ubicación precisa para este servicio."}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#0d1b28] p-4">
@@ -749,6 +860,25 @@ export default function ManageServiceView() {
           </aside>
         </form>
       </div>
+      <MapPickerModal
+        open={locationModalOpen}
+        onClose={() => setLocationModalOpen(false)}
+        onConfirm={({ address, lat, lng }) => {
+          setForm((prev) => ({
+            ...prev,
+            service_address: address || prev.service_address,
+            service_lat: lat !== undefined ? String(lat) : prev.service_lat,
+            service_lng: lng !== undefined ? String(lng) : prev.service_lng,
+          }));
+          setLocationModalOpen(false);
+        }}
+        initialPosition={
+          form.service_lat && form.service_lng
+            ? [Number(form.service_lat), Number(form.service_lng)]
+            : undefined
+        }
+        initialAddress={form.service_address || form.location}
+      />
       {showDeleteModal ? (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0d1b28] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">

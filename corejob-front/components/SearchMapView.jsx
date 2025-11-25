@@ -157,8 +157,15 @@ export default function SearchMapView({
 
     services.forEach((service) => {
       const profile = service.profile || {};
-      const lat = profile.service_lat;
-      const lng = profile.service_lng;
+      const useCustom = !!service.use_custom_location;
+      const lat =
+        useCustom && typeof service.service_lat === "number"
+          ? service.service_lat
+          : profile.service_lat;
+      const lng =
+        useCustom && typeof service.service_lng === "number"
+          ? service.service_lng
+          : profile.service_lng;
       if (typeof lat !== "number" || typeof lng !== "number") return;
       const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
       if (!groups.has(key)) groups.set(key, []);

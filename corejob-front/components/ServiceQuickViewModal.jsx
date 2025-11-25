@@ -11,6 +11,7 @@ export default function ServiceQuickViewModal({
   durationLabel,
   durationValue,
   gallery,
+  providerHref,
   onClose,
 }) {
   if (!open || !service) return null;
@@ -39,6 +40,7 @@ export default function ServiceQuickViewModal({
             badgeRight={service.location || ""}
             title={service.title || "Servicio"}
             provider={provider}
+            providerHref={providerHref}
             priceLabel={priceLabel}
             priceValue={priceValue}
             durationLabel={durationLabel}

@@ -197,8 +197,15 @@ export default function SearchView() {
       }
 
       if (maxDistanceKm && userLocation) {
-        const serviceLat = profile?.service_lat;
-        const serviceLng = profile?.service_lng;
+        const useCustom = !!service.use_custom_location;
+        const serviceLat =
+          useCustom && typeof service.service_lat === "number"
+            ? service.service_lat
+            : profile?.service_lat;
+        const serviceLng =
+          useCustom && typeof service.service_lng === "number"
+            ? service.service_lng
+            : profile?.service_lng;
         if (
           typeof serviceLat !== "number" ||
           Number.isNaN(serviceLat) ||
@@ -378,6 +385,18 @@ export default function SearchView() {
                         DEFAULT_PROVIDER.avatar,
                     }
                   : DEFAULT_PROVIDER
+              }
+              providerHref={
+                selectedService
+                  ? (() => {
+                      const ownerId =
+                        selectedService.user_id ||
+                        selectedService.user?._id ||
+                        selectedService.user?.id ||
+                        selectedService.userId;
+                      return ownerId ? `/profile/${ownerId}` : undefined;
+                    })()
+                  : undefined
               }
               priceLabel="Precio:"
               priceValue={
