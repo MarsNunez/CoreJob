@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { PERU_DEPARTMENTS } from "@/constants/peruLocations";
 import { fetchJSON } from "@/lib/api";
 
-const Filter = ({ onApplyFilters }) => {
+const Filter = ({ onApplyFilters, onClearFilters }) => {
   const [collapsed, setCollapsed] = useState(true);
   const [maxHeight, setMaxHeight] = useState(0);
   const [showCategories, setShowCategories] = useState(false);
@@ -123,6 +123,29 @@ const Filter = ({ onApplyFilters }) => {
         minRating: minRating ? Number(minRating) : null,
         maxDistanceKm: maxDistanceKm > 0 ? maxDistanceKm : null,
       });
+    }
+  };
+
+  const handleClear = () => {
+    setSelectedCategories(new Set());
+    setCountry("");
+    setDepartment("");
+    setMaxPrice("");
+    setMinRating("");
+    setMaxDistanceKm(0);
+
+    if (typeof onApplyFilters === "function") {
+      onApplyFilters({
+        categoryIds: [],
+        country: "",
+        department: "",
+        maxPrice: "",
+        minRating: null,
+        maxDistanceKm: null,
+      });
+    }
+    if (typeof onClearFilters === "function") {
+      onClearFilters();
     }
   };
 
@@ -294,6 +317,7 @@ const Filter = ({ onApplyFilters }) => {
           </button>
           <button
             type="button"
+            onClick={handleClear}
             className="border text-emerald-600 py-1 px-3 rounded-md hover:text-white hover:border-[#065f46] hover:bg-[#065f46] duration-200"
           >
             Limpiar Filtros

@@ -237,7 +237,19 @@ export default function SearchView() {
 
   return (
     <section className="p-5">
-      <Filter onApplyFilters={setActiveFilters} />
+      <Filter
+        onApplyFilters={setActiveFilters}
+        onClearFilters={() =>
+          setActiveFilters({
+            categoryIds: [],
+            country: "",
+            department: "",
+            maxPrice: "",
+            minRating: null,
+            maxDistanceKm: null,
+          })
+        }
+      />
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="border w-fit border-[#065f46] my-1 rounded-md px-2 py-1 flex items-center gap-2">

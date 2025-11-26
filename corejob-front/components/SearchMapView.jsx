@@ -14,19 +14,15 @@ import "leaflet/dist/leaflet.css";
 
 const DEFAULT_CENTER = [-12.0464, -77.0428]; // Lima
 
-const useDivIcon = (label) =>
-  useMemo(
-    () =>
-      new L.DivIcon({
-        className: "price-marker",
-        html: `<div class="flex h-11 min-w-11 items-center justify-center rounded-full bg-[rgba(15,23,42,0.92)] text-[10px] font-semibold text-white shadow-lg border border-white/15 px-2">
-          <span class="leading-tight text-center">${label}</span>
-        </div>`,
-        iconSize: [44, 44],
-        iconAnchor: [22, 22],
-      }),
-    [label]
-  );
+const createPriceIcon = (label) =>
+  new L.DivIcon({
+    className: "price-marker",
+    html: `<div class="flex h-11 min-w-11 items-center justify-center rounded-full bg-[rgba(15,23,42,0.92)] text-[10px] font-semibold text-white shadow-lg border border-white/15 px-2">
+      <span class="leading-tight text-center">${label}</span>
+    </div>`,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+  });
 
 const FlyTo = ({ center }) => {
   const map = useMap();
@@ -36,6 +32,28 @@ const FlyTo = ({ center }) => {
     }
   }, [center, map]);
   return null;
+};
+
+const RecenterButton = ({ userLocation }) => {
+  const map = useMap();
+  if (!userLocation) return null;
+
+  const handleClick = () => {
+    map.flyTo([userLocation.lat, userLocation.lng], map.getZoom() || 13, {
+      duration: 0.5,
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="absolute right-4 top-4 z-[650] inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/60 px-3 py-1.5 text-[11px] font-medium text-emerald-50 shadow-[0_10px_25px_rgba(0,0,0,0.5)] backdrop-blur-sm hover:border-emerald-400/70 hover:bg-black/80"
+    >
+      <i className="fa-solid fa-location-crosshairs text-[0.7rem]" />
+      <span>Volver a mi ubicación</span>
+    </button>
+  );
 };
 
 const ClusterOverlay = ({
@@ -190,6 +208,7 @@ export default function SearchMapView({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FlyTo center={mapCenter} />
+        <RecenterButton userLocation={userLocation} />
         {userLocation && (
           <Marker
             position={[userLocation.lat, userLocation.lng]}
@@ -235,7 +254,9 @@ export default function SearchMapView({
               })}`;
             }
           }
-          const icon = useDivIcon(shortLabel || (isCluster ? "+?" : "S/ -"));
+          const icon = createPriceIcon(
+            shortLabel || (isCluster ? "+?" : "S/ -")
+          );
           return (
             <Marker
               key={service._id}
