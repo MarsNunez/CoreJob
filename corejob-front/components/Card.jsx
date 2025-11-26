@@ -98,7 +98,7 @@ export default function Card({
           </div>
         ) : null}
         {badgeRight ? (
-          <span className="absolute right-4 top-4 rounded-full bg-white/80 px-4 py-1 text-xs font-semibold text-[#1c1c1c]">
+          <span className="absolute right-4 top-4 max-w-[11rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full bg-white/80 px-4 py-1 text-xs font-semibold text-[#1c1c1c]">
             {badgeRight}
           </span>
         ) : null}
@@ -238,7 +238,9 @@ export default function Card({
                   <span className="rounded-full bg-[#055941] px-3 py-1 text-white">{badgeLeft}</span>
                 )}
                 {badgeRight && (
-                  <span className="rounded-full bg-white/80 px-3 py-1 text-[#1c1c1c]">{badgeRight}</span>
+                  <span className="max-w-[14rem] overflow-hidden text-ellipsis whitespace-nowrap rounded-full bg-white/80 px-3 py-1 text-[#1c1c1c]">
+                    {badgeRight}
+                  </span>
                 )}
               </div>
             </div>

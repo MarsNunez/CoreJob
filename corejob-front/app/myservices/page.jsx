@@ -72,7 +72,10 @@ export default function MyServices() {
               day: "numeric",
             })
           : "Sin fecha",
-        location: service.location || "Ubicación por definir",
+        location:
+          (service.use_custom_location && service.service_address) ||
+          service.profile?.service_address ||
+          "Ubicación por definir",
         schedule: service.estimated_duration || "Duración flexible",
         price: formatPrice(service.price),
         priceUnit: service.price_type || "",

@@ -50,7 +50,9 @@ export default function ServiceCard({
             <dt className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
               Ubicación
             </dt>
-            <dd className="font-semibold">{location}</dd>
+            <dd className="font-semibold line-clamp-1 max-w-[16rem]">
+              {location}
+            </dd>
           </div>
         </div>
         <div className="flex items-center gap-2 rounded-2xl border border-white/5 bg-white/5 px-3 py-2 md:px-4 md:py-3">

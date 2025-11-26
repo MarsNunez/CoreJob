@@ -24,7 +24,6 @@ const initialForm = {
   price: "",
   price_type: priceTypeOptions[0],
   estimated_duration: "",
-  location: "",
   use_custom_location: false,
   service_lat: "",
   service_lng: "",
@@ -142,14 +141,13 @@ export default function NewServicePage() {
       return;
     }
 
-    const hasZone = form.location.trim().length > 0;
     const hasCustomLocation =
       form.use_custom_location &&
       ((form.service_address && form.service_address.trim().length > 0) ||
         (form.service_lat && form.service_lng));
 
-    if (!hasZone && !hasCustomLocation) {
-      setError("Indica la ubicación o zona de atención.");
+    if (form.use_custom_location && !hasCustomLocation) {
+      setError("Selecciona una ubicación en el mapa para este servicio.");
       return;
     }
 
@@ -197,7 +195,6 @@ export default function NewServicePage() {
       price_type: form.price_type,
       price: priceValue,
       estimated_duration: form.estimated_duration.trim(),
-      location: form.location.trim(),
       use_custom_location: !!form.use_custom_location,
       service_lat:
         form.use_custom_location && form.service_lat !== ""
@@ -374,17 +371,6 @@ export default function NewServicePage() {
                 />
               </label>
 
-              <label className="flex flex-col gap-2 text-sm text-slate-200">
-                Ubicación o zona
-                <input
-                  type="text"
-                  name="location"
-                  value={form.location}
-                  onChange={handleFormChange}
-                  className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  placeholder="Ciudad, distrito o zona"
-                />
-              </label>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-[#0d1b28] p-4 text-sm text-slate-200">
@@ -657,7 +643,7 @@ export default function NewServicePage() {
             ? [Number(form.service_lat), Number(form.service_lng)]
             : undefined
         }
-        initialAddress={form.service_address || form.location}
+        initialAddress={form.service_address || ""}
       />
     </section>
   );

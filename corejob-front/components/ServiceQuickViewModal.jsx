@@ -12,6 +12,7 @@ export default function ServiceQuickViewModal({
   durationValue,
   gallery,
   providerHref,
+   locationLabel = "",
   onClose,
 }) {
   if (!open || !service) return null;
@@ -37,7 +38,7 @@ export default function ServiceQuickViewModal({
           <Card
             layout="horizontal"
             imageSrc={gallery?.[0]}
-            badgeRight={service.location || ""}
+            badgeRight={locationLabel}
             title={service.title || "Servicio"}
             provider={provider}
             providerHref={providerHref}

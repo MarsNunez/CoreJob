@@ -49,6 +49,14 @@ const haversineDistanceKm = (lat1, lng1, lat2, lng2) => {
   return R * c;
 };
 
+const getServiceLocationLabel = (service) => {
+  const profile = service.profile || {};
+  if (service.use_custom_location && service.service_address) {
+    return service.service_address;
+  }
+  return profile.service_address || "";
+};
+
 export default function SearchView() {
   const [services, setServices] = useState([]);
   const [query, setQuery] = useState("");
@@ -334,12 +342,13 @@ export default function SearchView() {
                   const providerHref = ownerId
                     ? `/profile/${ownerId}`
                     : undefined;
+                  const locationLabel = getServiceLocationLabel(service);
 
                   return (
                     <Card
                       key={service._id}
                       imageSrc={firstImage}
-                      badgeRight={service.location || ""}
+                      badgeRight={locationLabel}
                       title={service.title || "Servicio"}
                       provider={provider}
                       providerHref={providerHref}
@@ -363,6 +372,7 @@ export default function SearchView() {
                 services={filteredServices}
                 userLocation={userLocation}
                 formatPrice={formatPrice}
+                maxDistanceKm={activeFilters.maxDistanceKm || null}
                 onSelectService={(service) => setSelectedService(service)}
               />
             )}
@@ -415,6 +425,9 @@ export default function SearchView() {
                 selectedService && Array.isArray(selectedService.photos)
                   ? selectedService.photos
                   : []
+              }
+              locationLabel={
+                selectedService ? getServiceLocationLabel(selectedService) : ""
               }
               onClose={() => setSelectedService(null)}
             />

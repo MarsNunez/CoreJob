@@ -6,6 +6,7 @@ import {
   TileLayer,
   Marker,
   Tooltip,
+  Circle,
   useMap,
 } from "react-leaflet";
 import L from "leaflet";
@@ -136,6 +137,7 @@ export default function SearchMapView({
   userLocation,
   formatPrice,
   onSelectService,
+  maxDistanceKm,
 }) {
   const mapCenter = useMemo(() => {
     if (userLocation) return [userLocation.lat, userLocation.lng];
@@ -202,6 +204,18 @@ export default function SearchMapView({
               Tú
             </Tooltip>
           </Marker>
+        )}
+        {userLocation && maxDistanceKm && (
+          <Circle
+            center={[userLocation.lat, userLocation.lng]}
+            radius={maxDistanceKm * 1000}
+            pathOptions={{
+              color: "#22c55e",
+              weight: 1.5,
+              fillColor: "#22c55e",
+              fillOpacity: 0.08,
+            }}
+          />
         )}
         {markerGroups.map((items) => {
           if (!items.length) return null;
