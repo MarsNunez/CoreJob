@@ -6,10 +6,9 @@ import Card from "@/components/Card";
 import Filter from "@/components/Filter";
 import ServiceQuickViewModal from "@/components/ServiceQuickViewModal";
 
-const SearchMapView = dynamic(
-  () => import("@/components/SearchMapView"),
-  { ssr: false }
-);
+const SearchMapView = dynamic(() => import("@/components/SearchMapView"), {
+  ssr: false,
+});
 import { fetchJSON } from "@/lib/api";
 
 const DEFAULT_PROVIDER = {
@@ -21,7 +20,8 @@ const DEFAULT_PROVIDER = {
 };
 
 const formatPrice = (price, priceType) => {
-  if (price === null || price === undefined || price === "") return "No especificado";
+  if (price === null || price === undefined || price === "")
+    return "No especificado";
   const value = Number(price);
   if (Number.isNaN(value)) return "No especificado";
   const formatter = new Intl.NumberFormat("es-PE", {
@@ -55,6 +55,24 @@ const getServiceLocationLabel = (service) => {
     return service.service_address;
   }
   return profile.service_address || "";
+};
+
+const getServiceDepartment = (service) => {
+  const profile = service.profile || {};
+  let sourceAddress = "";
+  if (service.use_custom_location && service.service_address) {
+    sourceAddress = service.service_address;
+  } else if (profile.service_address) {
+    sourceAddress = profile.service_address;
+  }
+
+  if (sourceAddress) {
+    const firstPart = sourceAddress.split(",")[0].trim();
+    if (firstPart) return firstPart;
+  }
+
+  const owner = service.user || null;
+  return owner?.location_department || "";
 };
 
 export default function SearchView() {
@@ -178,8 +196,11 @@ export default function SearchView() {
         return false;
       }
 
-      if (department && owner?.location_department !== department) {
-        return false;
+      if (department) {
+        const serviceDept = getServiceDepartment(service);
+        if (!serviceDept || serviceDept !== department) {
+          return false;
+        }
       }
 
       const priceValue =
@@ -313,7 +334,7 @@ export default function SearchView() {
         ) : (
           <>
             {viewMode === "list" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 max-w-6xl mx-auto w-fit">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 max-w-6xl mx-auto w-fit mt-5">
                 {filteredServices.map((service) => {
                   const gallery = Array.isArray(service.photos)
                     ? service.photos
@@ -321,9 +342,7 @@ export default function SearchView() {
                   const firstImage =
                     gallery.find((url) => url && url.trim()) || undefined;
                   const categoryNames = Array.isArray(service.categories)
-                    ? service.categories
-                        .map((cat) => cat?.name)
-                        .filter(Boolean)
+                    ? service.categories.map((cat) => cat?.name).filter(Boolean)
                     : [];
 
                   const ownerId =
