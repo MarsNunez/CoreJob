@@ -62,6 +62,73 @@ router.get("/", async (req, res) => {
   }
 });
 
+// TOGGLE SAVE ON SERVICE
+router.post("/:id/save", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body || {};
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "userId es requerido para guardar el servicio." });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "ID de servicio inválido." });
+    }
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "ID de usuario inválido." });
+    }
+
+    const service = await ServiceModel.findById(id);
+    if (!service) {
+      return res.status(404).json({ message: "Service not found." });
+    }
+
+    if (String(service.user_id) === String(userId)) {
+      return res.status(400).json({
+        message: "No puedes guardar tu propio servicio.",
+      });
+    }
+
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const savedByArray = Array.isArray(service.saved_by)
+      ? service.saved_by
+      : [];
+    const alreadySaved = savedByArray.some((uid) =>
+      String(uid) === String(userObjectId)
+    );
+
+    let saved;
+    if (alreadySaved) {
+      service.saved_by = savedByArray.filter(
+        (uid) => String(uid) !== String(userObjectId)
+      );
+      saved = false;
+    } else {
+      service.saved_by = [...savedByArray, userObjectId];
+      saved = true;
+    }
+
+    await service.save();
+
+    res.json({
+      saved,
+      savesCount: Array.isArray(service.saved_by)
+        ? service.saved_by.length
+        : 0,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Error al actualizar el guardado",
+        error: error.message,
+      });
+  }
+});
+
 // GET SERVICE BY ID
 router.get("/:id", async (req, res) => {
   try {

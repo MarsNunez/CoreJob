@@ -28,6 +28,8 @@ export default function Card({
   providerHref,
   categories = [],
   children,
+  isSaved = false,
+  onToggleSave,
 }) {
 	  const [openInfo, setOpenInfo] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -102,6 +104,27 @@ export default function Card({
             {badgeRight}
           </span>
         ) : null}
+        {onToggleSave && (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleSave();
+            }}
+            className={`absolute bottom-4 right-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/60 text-xs transition hover:bg-black/80 ${
+              isSaved ? "text-emerald-300" : "text-white"
+            }`}
+            aria-label={
+              isSaved ? "Quitar de guardados" : "Guardar servicio"
+            }
+          >
+            <i
+              className={`${
+                isSaved ? "fa-solid fa-bookmark" : "fa-regular fa-bookmark"
+              } text-sm`}
+            />
+          </button>
+        )}
       </div>
 
 	      <div className={contentWrapperClasses}>

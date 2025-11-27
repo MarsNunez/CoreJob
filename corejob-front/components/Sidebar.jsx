@@ -11,7 +11,6 @@ export default function Sidebar() {
   const [isAuthed, setIsAuthed] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
-  const [roleLabel, setRoleLabel] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -21,13 +20,11 @@ export default function Sidebar() {
     const user = getCurrentUser();
     setCurrentUser(user || null);
     setIsAuthed(!!token && !!user);
-    setRoleLabel(user?.role ? user.role : "");
   }, [pathname]);
 
   const logout = () => {
     clearAuthSession();
     setIsAuthed(false);
-    setRoleLabel("");
     router.push("/login");
   };
 
@@ -93,7 +90,7 @@ export default function Sidebar() {
           <div className="mr-auto">
             <div className="text-sm font-semibold">CoreJob.</div>
             <div className="text-xs text-neutral-600 dark:text-neutral-300 border border-neutral-500 rounded px-2 py-0.5 inline-flex items-center gap-1">
-              {roleLabel || (isAuthed ? "User" : "Guest")}
+              {isAuthed ? "Usuario" : "Invitado"}
             </div>
           </div>
         )}

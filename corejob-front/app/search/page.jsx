@@ -9,7 +9,7 @@ import ServiceQuickViewModal from "@/components/ServiceQuickViewModal";
 const SearchMapView = dynamic(() => import("@/components/SearchMapView"), {
   ssr: false,
 });
-import { fetchJSON } from "@/lib/api";
+import { fetchJSON, getCurrentUser } from "@/lib/api";
 
 const DEFAULT_PROVIDER = {
   name: "Proveedor",
@@ -93,6 +93,11 @@ export default function SearchView() {
   const [locationError, setLocationError] = useState("");
   const [viewMode, setViewMode] = useState("list");
   const [selectedService, setSelectedService] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+  }, []);
 
   useEffect(() => {
     const loadServices = async () => {
@@ -161,6 +166,8 @@ export default function SearchView() {
     requestUserLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, userLocation, locating, locationError]);
+
+  const currentUserId = currentUser?._id ? String(currentUser._id) : "";
 
   const filteredServices = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -255,6 +262,50 @@ export default function SearchView() {
       return true;
     });
   }, [services, query, activeFilters]);
+
+  const handleToggleSave = async (service) => {
+    if (!currentUserId) {
+      return;
+    }
+    const ownerId =
+      service.user_id ||
+      service.user?._id ||
+      service.user?.id ||
+      service.userId;
+    if (ownerId && String(ownerId) === String(currentUserId)) {
+      return;
+    }
+
+    try {
+      const result = await fetchJSON(`/services/${service._id}/save`, {
+        method: "POST",
+        data: { userId: currentUserId },
+        suppressRedirect: true,
+      });
+      const savedNow = !!result?.saved;
+
+      setServices((prev) =>
+        prev.map((item) => {
+          if (String(item._id) !== String(service._id)) return item;
+          const savedBy = Array.isArray(item.saved_by)
+            ? item.saved_by.map((id) => String(id))
+            : [];
+          const already = savedBy.includes(String(currentUserId));
+          let nextSavedBy = savedBy;
+          if (savedNow && !already) {
+            nextSavedBy = [...savedBy, String(currentUserId)];
+          } else if (!savedNow && already) {
+            nextSavedBy = savedBy.filter(
+              (id) => id !== String(currentUserId)
+            );
+          }
+          return { ...item, saved_by: nextSavedBy };
+        })
+      );
+    } catch (err) {
+      console.error("No se pudo actualizar el like", err);
+    }
+  };
 
   return (
     <section className="p-5">
@@ -374,6 +425,12 @@ export default function SearchView() {
                     ? `/profile/${ownerId}`
                     : undefined;
                   const locationLabel = getServiceLocationLabel(service);
+                  const savedBy = Array.isArray(service.saved_by)
+                    ? service.saved_by.map((id) => String(id))
+                    : [];
+                  const isSaved =
+                    currentUserId &&
+                    savedBy.includes(String(currentUserId));
 
                   return (
                     <Card
@@ -394,6 +451,13 @@ export default function SearchView() {
                         service.estimated_duration || "No especificada"
                       }
                       gallery={gallery}
+                      isSaved={!!isSaved}
+                      onToggleSave={
+                        currentUserId &&
+                        (!ownerId || String(ownerId) !== String(currentUserId))
+                          ? () => handleToggleSave(service)
+                          : undefined
+                      }
                     />
                   );
                 })}

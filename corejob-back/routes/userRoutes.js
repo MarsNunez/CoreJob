@@ -11,7 +11,6 @@ const signToken = (user) =>
     {
       id: user._id,
       email: user.email,
-      role: user.role,
     },
     JWT_SECRET,
     { expiresIn: "2d" }

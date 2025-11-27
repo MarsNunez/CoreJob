@@ -21,7 +21,8 @@ const formatPrice = (value) => {
 
 export default function MyServices() {
   const { user: currentUser, checking: authChecking } = useAuthGuard();
-  const [services, setServices] = useState([]);
+  const [ownServices, setOwnServices] = useState([]);
+  const [savedServices, setSavedServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const currentUserId = currentUser?._id ? String(currentUser._id) : "";
@@ -35,11 +36,19 @@ export default function MyServices() {
       setError("");
       try {
         const data = await fetchJSON("/services", { suppressRedirect: true });
-        const filtered = data.filter(
+        const filteredMine = data.filter(
           (service) => String(service.user_id) === String(currentUserId)
         );
+        const filteredSaved = data.filter((service) => {
+          if (String(service.user_id) === String(currentUserId)) return false;
+          const savedBy = Array.isArray(service.saved_by)
+            ? service.saved_by.map((id) => String(id))
+            : [];
+          return savedBy.includes(String(currentUserId));
+        });
         if (active) {
-          setServices(filtered);
+          setOwnServices(filteredMine);
+          setSavedServices(filteredSaved);
         }
       } catch (err) {
         if (active) {
@@ -60,7 +69,7 @@ export default function MyServices() {
 
   const cards = useMemo(
     () =>
-      services.map((service) => ({
+      ownServices.map((service) => ({
         id: service._id,
         title: service.title,
         variant: service.price_type || "Servicio",
@@ -83,7 +92,39 @@ export default function MyServices() {
           service.photos?.[0] ||
           "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
       })),
-    [services]
+    [ownServices]
+  );
+
+  const savedCards = useMemo(
+    () =>
+      savedServices.map((service) => ({
+        id: service._id,
+        title: service.title,
+        variant: service.price_type || "Servicio",
+        rating: service.rating_average ?? 0,
+        joined: service.createdAt
+          ? new Date(service.createdAt).toLocaleDateString("es-ES", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })
+          : "Sin fecha",
+        location:
+          (service.use_custom_location && service.service_address) ||
+          service.profile?.service_address ||
+          "Ubicación por definir",
+        schedule: service.estimated_duration || "Duración flexible",
+        price: formatPrice(service.price),
+        priceUnit: service.price_type || "",
+        photo:
+          service.photos?.[0] ||
+          "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
+        providerProfileHref:
+          service.user_id || service.user?._id
+            ? `/profile/${service.user_id || service.user?._id}`
+            : "/search",
+      })),
+    [savedServices]
   );
 
   if (authChecking) {
@@ -130,15 +171,46 @@ export default function MyServices() {
           <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-6 text-center text-red-100">
             {error}
           </div>
-        ) : cards.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-[#0c1821] p-10 text-center text-slate-300">
-            Aún no tienes servicios creados. Usa el botón “Nuevo servicio” para empezar.
-          </div>
         ) : (
-          <div className="flex flex-col gap-5">
-            {cards.map((service) => (
-              <ServiceCard key={service.id} {...service} />
-            ))}
+          <div className="flex flex-col gap-8">
+            <section className="flex flex-col gap-4">
+              <h2 className="text-lg font-semibold text-white">
+                Servicios creados por ti
+              </h2>
+              {cards.length === 0 ? (
+                <div className="rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center text-slate-300">
+                  Aún no tienes servicios creados. Usa el botón “Nuevo servicio” para empezar.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {cards.map((service) => (
+                    <ServiceCard key={service.id} {...service} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="flex flex-col gap-4">
+              <h2 className="text-lg font-semibold text-white">
+                Servicios guardados
+              </h2>
+              {savedCards.length === 0 ? (
+                <div className="rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center text-slate-300">
+                  Aún no has guardado ningún servicio.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {savedCards.map((service) => (
+                    <ServiceCard
+                      key={service.id}
+                      {...service}
+                      ctaHref={service.providerProfileHref}
+                      ctaLabel="Ver proveedor"
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
         )}
       </div>

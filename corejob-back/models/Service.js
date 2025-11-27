@@ -88,6 +88,12 @@ const ServiceSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    saved_by: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,

@@ -15,7 +15,6 @@ export default function Navbar() {
   const router = useRouter();
   const [isAuthed, setIsAuthed] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [roleLabel, setRoleLabel] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -26,7 +25,6 @@ export default function Navbar() {
     const user = getCurrentUser();
     setCurrentUser(user || null);
     setIsAuthed(!!token && !!user);
-    setRoleLabel(user?.role ? user.role : "");
   }, [pathname]);
 
   useEffect(() => {
@@ -77,7 +75,6 @@ export default function Navbar() {
   const logout = () => {
     clearAuthSession();
     setIsAuthed(false);
-    setRoleLabel("");
     router.push("/login");
   };
 
@@ -116,7 +113,7 @@ export default function Navbar() {
                 ConectaLA.
               </span>
               <span className="text-[11px] text-emerald-100/70">
-                {roleLabel || (isAuthed ? "Proveedor" : "Invitado")}
+                {isAuthed ? "Cuenta personal" : "Invitado"}
               </span>
             </div>
           </div>

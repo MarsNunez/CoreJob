@@ -10,7 +10,6 @@ const initialForm = {
   fullName: "",
   email: "",
   phone: "",
-  role: "client",
   location_country: "Perú",
   location_department: "",
   phone_public: true,
@@ -18,16 +17,8 @@ const initialForm = {
   confirmPassword: "",
 };
 
-const initialProfile = {
-  profile_picture: "",
-};
-
 export default function RegisterPage() {
   const [form, setForm] = useState(initialForm);
-  const [profileInfo, setProfileInfo] = useState(initialProfile);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [emailCheck, setEmailCheck] = useState({
@@ -36,130 +27,65 @@ export default function RegisterPage() {
   });
   const router = useRouter();
 
-  const isProvider = form.role === "provider";
-  const totalSteps = isProvider ? 3 : 1;
-  const isFinal = step === totalSteps - 1;
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const data = await fetchJSON("/categories", { suppressRedirect: true });
-        setCategories(data || []);
-      } catch (err) {
-        console.error("No se pudieron cargar las categorías", err);
-      }
-    };
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
-    if (!isProvider && step > 0) {
-      setStep(0);
-      setSelectedCategories([]);
-      setProfileInfo(initialProfile);
-    }
-  }, [isProvider, step]);
-
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleProfileChange = (event) => {
-    const { name, value } = event.target;
-    setProfileInfo((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const toggleCategory = (id) => {
-    setError("");
-    setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((cat) => cat !== id) : [...prev, id]
-    );
-  };
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const validateStep = async (currentStep) => {
-    if (currentStep === 0) {
-      if (!form.fullName.trim()) {
-        setError("Ingresa tu nombre completo");
-        return false;
-      }
-      if (!form.email.trim()) {
-        setError("Ingresa un correo electrónico");
-        return false;
-      }
-      if (!emailRegex.test(form.email.trim())) {
-        setError("Ingresa un correo válido");
-        return false;
-      }
+  const validateForm = async () => {
+    if (!form.fullName.trim()) {
+      setError("Ingresa tu nombre completo");
+      return false;
+    }
+    if (!form.email.trim()) {
+      setError("Ingresa un correo electrónico");
+      return false;
+    }
+    if (!emailRegex.test(form.email.trim())) {
+      setError("Ingresa un correo válido");
+      return false;
+    }
 
-      if (form.email.trim() !== emailCheck.email || !emailCheck.available) {
-        try {
-          const result = await fetchJSON("/users/check", {
-            method: "GET",
-            params: { email: form.email.trim() },
-            suppressRedirect: true,
-          });
-          if (result.exists) {
-            setEmailCheck({ email: form.email.trim(), available: false });
-            setError("Este correo ya está registrado");
-            return false;
-          }
-          setEmailCheck({ email: form.email.trim(), available: true });
-        } catch (err) {
-          setError(err.message || "No se pudo validar el correo");
+    if (form.email.trim() !== emailCheck.email || !emailCheck.available) {
+      try {
+        const result = await fetchJSON("/users/check", {
+          method: "GET",
+          params: { email: form.email.trim() },
+          suppressRedirect: true,
+        });
+        if (result.exists) {
+          setEmailCheck({ email: form.email.trim(), available: false });
+          setError("Este correo ya está registrado");
           return false;
         }
-      }
-
-      if (form.password.length < 6) {
-        setError("La contraseña debe tener al menos 6 caracteres");
-        return false;
-      }
-
-      if (form.password !== form.confirmPassword) {
-        setError("Las contraseñas no coinciden");
+        setEmailCheck({ email: form.email.trim(), available: true });
+      } catch (err) {
+        setError(err.message || "No se pudo validar el correo");
         return false;
       }
     }
 
-    return true;
-  };
+    if (form.password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      return false;
+    }
 
-  const goNext = async () => {
-    setError("");
-    const valid = await validateStep(step);
-    if (!valid) return;
-    setStep((prev) => Math.min(prev + 1, totalSteps - 1));
-  };
-  const goBack = () => {
-    setError("");
-    setStep((prev) => Math.max(prev - 1, 0));
+    if (form.password !== form.confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
 
-    const baseValid = await validateStep(0);
-    if (!baseValid) {
-      setStep(0);
-      return;
-    }
-
-    if (isProvider) {
-      const contactValid = await validateStep(1);
-      if (!contactValid) {
-        setStep(1);
-        return;
-      }
-      if (selectedCategories.length === 0) {
-        setError("Selecciona al menos una categoría");
-        setStep(2);
-        return;
-      }
-    }
+    const isValid = await validateForm();
+    if (!isValid) return;
 
     setLoading(true);
     try {
@@ -167,7 +93,6 @@ export default function RegisterPage() {
         full_name: form.fullName,
         email: form.email,
         phone: form.phone,
-        role: form.role,
         location_country: form.location_country || "Perú",
         location_department: form.location_department,
         phone_public: form.phone_public,
@@ -179,18 +104,6 @@ export default function RegisterPage() {
         suppressRedirect: true,
       });
 
-      if (isProvider && data?.user?._id) {
-        await fetchJSON("/profiles", {
-          method: "POST",
-          data: {
-            user_id: data.user._id,
-            profile_picture: profileInfo.profile_picture,
-            categories: selectedCategories,
-          },
-          suppressRedirect: true,
-        });
-      }
-
       setAuthSession(data.token, data.user);
       router.push("/");
     } catch (err) {
@@ -198,10 +111,6 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const sliderStyle = {
-    transform: `translateX(-${step * 100}%)`,
   };
 
   return (
@@ -233,9 +142,7 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-300/80">
-              {isProvider
-                ? `Paso ${step + 1} de ${totalSteps}`
-                : "Comienza aquí"}
+              Comienza aquí
             </p>
             <h1 className="text-3xl font-bold">Crea tu cuenta</h1>
             <p className="text-sm text-slate-300">
@@ -244,183 +151,93 @@ export default function RegisterPage() {
           </div>
 
           <form className="mt-8" onSubmit={handleSubmit}>
-            <div className="w-full overflow-hidden">
-              <div
-                className="flex transition-transform duration-500"
-                style={sliderStyle}
-              >
-                <div className="min-w-full flex-shrink-0 space-y-5 pr-0 md:pr-6">
-                  <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                    Nombre completo
-                    <input
-                      name="fullName"
-                      type="text"
-                      required
-                      className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                      value={form.fullName}
-                      onChange={handleChange}
-                    />
-                  </label>
-                  <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                    Correo electrónico
-                    <input
-                      name="email"
-                      type="email"
-                      required
-                      className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                      value={form.email}
-                      onChange={handleChange}
-                    />
-                  </label>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                      Contraseña
-                      <input
-                        name="password"
-                        type="password"
-                        required
-                        className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                        value={form.password}
-                        onChange={handleChange}
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                      Confirmar contraseña
-                      <input
-                        name="confirmPassword"
-                        type="password"
-                        required
-                        className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                        value={form.confirmPassword}
-                        onChange={handleChange}
-                      />
-                    </label>
-                  </div>
-                  <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                    ¿Cómo usarás CoreJob?
-                    <select
-                      name="role"
-                      className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                      value={form.role}
-                      onChange={(event) => {
-                        handleChange(event);
-                        setError("");
-                        setStep(0);
-                      }}
-                    >
-                      <option value="client">Contratar servicios</option>
-                      <option value="provider">Ofrecer mis servicios</option>
-                    </select>
-                  </label>
-                </div>
-
-                {isProvider && (
-                  <div className="min-w-full flex-shrink-0 space-y-5 px-0 md:px-6">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                        Teléfono
-                        <input
-                          name="phone"
-                          type="tel"
-                          className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                          value={form.phone}
-                          onChange={handleChange}
-                        />
-                      </label>
-                      <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                        País
-                        <select
-                          name="location_country"
-                          className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                          value={form.location_country || "Perú"}
-                          onChange={handleChange}
-                        >
-                          <option value="Perú">Perú</option>
-                        </select>
-                      </label>
-                    </div>
-                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                      Departamento
-                      <select
-                        name="location_department"
-                        className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                        value={form.location_department}
-                        onChange={handleChange}
-                      >
-                        <option value="">Selecciona un departamento</option>
-                        {PERU_DEPARTMENTS.map((department) => (
-                          <option key={department} value={department}>
-                            {department}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                )}
-
-                {isProvider && (
-                  <div className="min-w-full flex-shrink-0 space-y-5 pl-0 md:pl-6">
-                    <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
-                      URL de foto de perfil
-                      <input
-                        name="profile_picture"
-                        type="text"
-                        className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                        value={profileInfo.profile_picture}
-                        onChange={handleProfileChange}
-                      />
-                    </label>
-                    <div className="space-y-3">
-                      <p className="text-sm font-semibold text-slate-200">
-                        Categorías de servicio
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {categories.map((category) => {
-                          const active = selectedCategories.includes(
-                            category._id
-                          );
-                          return (
-                            <button
-                              key={category._id}
-                              type="button"
-                              onClick={() => toggleCategory(category._id)}
-                              className={`rounded-full border px-4 py-1 text-sm transition ${
-                                active
-                                  ? "border-emerald-400 bg-emerald-500/10 text-emerald-200"
-                                  : "border-white/10 text-slate-200 hover:bg-white/5"
-                              }`}
-                            >
-                              {category.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
+            <div className="space-y-5 pr-0 md:pr-6">
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                Nombre completo
+                <input
+                  name="fullName"
+                  type="text"
+                  required
+                  className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  value={form.fullName}
+                  onChange={handleChange}
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                Correo electrónico
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  value={form.email}
+                  onChange={handleChange}
+                />
+              </label>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                  Contraseña
+                  <input
+                    name="password"
+                    type="password"
+                    required
+                    className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                    value={form.password}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                  Confirmar contraseña
+                  <input
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                  />
+                </label>
               </div>
-            </div>
-
-            <div className="mt-6 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={goBack}
-                className={`rounded-2xl border border-white/15 px-4 py-2 text-sm text-white transition hover:bg-white/10 ${
-                  step === 0 ? "invisible" : ""
-                }`}
-              >
-                Anterior
-              </button>
-
-              {isProvider && !isFinal ? (
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-8 py-3 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(6,182,212,0.35)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                  Teléfono
+                  <input
+                    name="phone"
+                    type="tel"
+                    className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                    value={form.phone}
+                    onChange={handleChange}
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                  País
+                  <select
+                    name="location_country"
+                    className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                    value={form.location_country || "Perú"}
+                    onChange={handleChange}
+                  >
+                    <option value="Perú">Perú</option>
+                  </select>
+                </label>
+              </div>
+              <label className="flex flex-col gap-2 text-sm font-semibold text-slate-200">
+                Departamento
+                <select
+                  name="location_department"
+                  className="rounded-2xl border border-white/10 bg-[#061120] px-4 py-3 text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
+                  value={form.location_department}
+                  onChange={handleChange}
                 >
-                  Siguiente
-                </button>
-              ) : (
+                  <option value="">Selecciona un departamento</option>
+                  {PERU_DEPARTMENTS.map((department) => (
+                    <option key={department} value={department}>
+                      {department}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="mt-6 flex items-center justify-end">
                 <button
                   type="submit"
                   disabled={loading}
@@ -428,7 +245,7 @@ export default function RegisterPage() {
                 >
                   {loading ? "Creando cuenta..." : "Crear cuenta"}
                 </button>
-              )}
+              </div>
             </div>
           </form>
 

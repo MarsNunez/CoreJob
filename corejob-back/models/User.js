@@ -24,11 +24,6 @@ const UserSchema = new Schema(
       type: String,
       trim: true,
     },
-    role: {
-      type: String,
-      enum: ["client", "provider"],
-      default: "client",
-    },
     is_verified: {
       type: Boolean,
       default: false,

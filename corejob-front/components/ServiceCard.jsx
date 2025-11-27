@@ -11,7 +11,11 @@ export default function ServiceCard({
   price = "7",
   priceUnit = "$/H",
   photo = "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=800&q=80",
+  ctaHref,
+  ctaLabel = "Editar",
 }) {
+  const effectiveCtaHref = ctaHref || `/myservices/manage/${id}`;
+
   return (
     <article className="rounded-[24px] border border-white/10 bg-[radial-gradient(circle_at_top,_#101c28,_#070d14)] p-4 text-slate-100 shadow-[0_20px_45px_rgba(0,0,0,0.45)] transition hover:-translate-y-1 hover:border-emerald-400/40 md:p-6">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -80,11 +84,11 @@ export default function ServiceCard({
         </div>
         <div className="flex flex-wrap gap-2 md:gap-3">
           <Link
-            href={`/myservices/manage/${id}`}
+            href={effectiveCtaHref}
             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-[0_12px_25px_rgba(16,185,129,0.35)] transition hover:bg-emerald-500 md:rounded-2xl md:px-4 md:text-sm"
           >
             <i className="fa-solid fa-pen-to-square text-[10px]"></i>
-            Editar
+            {ctaLabel}
           </Link>
         </div>
       </footer>

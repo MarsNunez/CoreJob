@@ -89,32 +89,30 @@ export default function ProfileView() {
         let filteredPortfolio = [];
         let filteredReviews = [];
 
-        if (userResponse.role === "provider") {
-          const [servicesResponse, portfolioResponse, reviewsResponse] =
-            await Promise.all([
-              fetchJSON("/services", { suppressRedirect: true }),
-              fetchJSON("/portfolio-items", { suppressRedirect: true }),
-              fetchJSON("/reviews", { suppressRedirect: true }),
-            ]);
+        const [servicesResponse, portfolioResponse, reviewsResponse] =
+          await Promise.all([
+            fetchJSON("/services", { suppressRedirect: true }),
+            fetchJSON("/portfolio-items", { suppressRedirect: true }),
+            fetchJSON("/reviews", { suppressRedirect: true }),
+          ]);
 
-          filteredServices = servicesResponse.filter(
-            (service) => String(service.user_id) === String(targetId)
-          );
+        filteredServices = servicesResponse.filter(
+          (service) => String(service.user_id) === String(targetId)
+        );
 
-          const profileId = matchedProfile?._id;
-          filteredPortfolio = profileId
-            ? portfolioResponse.filter(
-                (project) => String(project.profile_id) === String(profileId)
-              )
-            : [];
+        const profileId = matchedProfile?._id;
+        filteredPortfolio = profileId
+          ? portfolioResponse.filter(
+              (project) => String(project.profile_id) === String(profileId)
+            )
+          : [];
 
-          const serviceIds = new Set(
-            filteredServices.map((service) => String(service._id))
-          );
-          filteredReviews = reviewsResponse.filter((review) =>
-            serviceIds.has(String(review.service_id))
-          );
-        }
+        const serviceIds = new Set(
+          filteredServices.map((service) => String(service._id))
+        );
+        filteredReviews = reviewsResponse.filter((review) =>
+          serviceIds.has(String(review.service_id))
+        );
 
         if (!active) return;
         setUserData(userResponse);

@@ -17,13 +17,19 @@ export default function ControlPanelPage() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+   const [currentUser, setCurrentUser] = useState(null);
+   const [hydrated, setHydrated] = useState(false);
 
-  const currentUser = getCurrentUser();
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+    setHydrated(true);
+  }, []);
+
   const currentUserId = currentUser?._id ? String(currentUser._id) : "";
 
   useEffect(() => {
     const load = async () => {
-      if (!currentUserId) return;
+      if (!hydrated || !currentUserId) return;
       setLoading(true);
       setError("");
       try {
@@ -62,7 +68,7 @@ export default function ControlPanelPage() {
     };
 
     load();
-  }, [currentUserId]);
+  }, [currentUserId, hydrated]);
 
   const stats = useMemo(() => {
     const totalServices = services.length;
@@ -97,6 +103,16 @@ export default function ControlPanelPage() {
       .sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0))
       .slice(0, 3);
   }, [services]);
+
+  if (!hydrated) {
+    return (
+      <section className="min-h-screen bg-[radial-gradient(circle_at_top,#0b1b24,#050b10)] px-4 py-10 text-white sm:px-8 lg:px-16">
+        <div className="mx-auto flex max-w-xl flex-col gap-5 rounded-3xl border border-white/10 bg-[#0c1821] p-8 text-center">
+          <p className="text-lg font-semibold">Cargando tu panel...</p>
+        </div>
+      </section>
+    );
+  }
 
   if (!currentUserId) {
     return (
@@ -324,4 +340,3 @@ export default function ControlPanelPage() {
     </section>
   );
 }
-
