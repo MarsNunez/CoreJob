@@ -1,12 +1,9 @@
 import Link from "next/link";
 
-const FALLBACK_AVATAR =
-  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=facearea&w=400&q=80";
-
 export default function ProfileHeader({ profile }) {
   if (!profile) return null;
 
-  const avatar = profile.avatar || FALLBACK_AVATAR;
+  const avatar = profile.avatar || "";
   const services =
     Array.isArray(profile.services) && profile.services.length > 0
       ? profile.services.filter(Boolean)
@@ -29,12 +26,17 @@ export default function ProfileHeader({ profile }) {
     <article className="flex w-full flex-col gap-6 rounded-[32px] border border-white/10 bg-[#0b1621] p-5 shadow-[0_25px_55px_rgba(0,0,0,0.45)] sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
       <div className="flex flex-1 min-w-0 flex-col gap-5 lg:flex-row lg:items-center">
         <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full border-4 border-[#0f2c25]">
-          <img
-            src={avatar}
-            alt={profile.name}
-            className="h-full w-full object-cover"
-          />
-          <span className="absolute bottom-2 right-1 h-4 w-4 rounded-full border-4 border-[#0b1621] bg-emerald-500"></span>
+          {avatar ? (
+            <img
+              src={avatar}
+              alt={profile.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="grid h-full w-full place-items-center bg-[#0f2333] text-emerald-200">
+              <i className="fa-solid fa-user text-4xl" />
+            </div>
+          )}
         </div>
 
         <div className="space-y-3 text-white">

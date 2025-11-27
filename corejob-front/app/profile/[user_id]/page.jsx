@@ -13,8 +13,6 @@ import ProfileQuickBooking from "@/components/ProfileQuickBooking";
 import { fetchJSON, getCurrentUser } from "@/lib/api";
 import { PRICE_CURRENCY_MAP } from "@/constants/currencies";
 
-const FALLBACK_AVATAR =
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&q=80";
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80";
 
@@ -205,7 +203,7 @@ export default function ProfileView() {
         title: service.title,
         provider: {
           name: userData?.full_name || "Profesional CoreJob",
-          avatar: profileData?.profile_picture || FALLBACK_AVATAR,
+          avatar: profileData?.profile_picture || "",
           rating: profileData?.rating_average ?? 0,
           reviews: reviews.length,
         },
@@ -286,7 +284,7 @@ export default function ProfileView() {
       : "Miembro de CoreJob";
 
     return {
-      avatar: profileData?.profile_picture || FALLBACK_AVATAR,
+      avatar: profileData?.profile_picture || "",
       name: userData.full_name,
       title: profileCategories.length
         ? `Especialista en ${profileCategories[0]}`

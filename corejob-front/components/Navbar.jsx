@@ -18,7 +18,9 @@ export default function Navbar() {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const mobileAreaRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     const token = getToken();
@@ -55,7 +57,7 @@ export default function Navbar() {
     return () => {
       active = false;
     };
-  }, [currentUser?._id]);
+  }, [currentUser?._id, pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -64,6 +66,12 @@ export default function Navbar() {
         !mobileAreaRef.current.contains(event.target)
       ) {
         setMobileOpen(false);
+      }
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
+        setUserMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -133,35 +141,12 @@ export default function Navbar() {
                   icon="fa-solid fa-suitcase"
                   label="Mis servicios"
                 />
-                <NavItem
-                  href="/controlPanel"
-                  icon="fa-solid fa-table-columns"
-                  label="Control Panel"
-                />
               </>
             )}
           </nav>
 
           {/* Right side: auth + profile (desktop) */}
           <div className="hidden items-center gap-2 lg:flex">
-            <Link
-              href={profileHref}
-              className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-emerald-50 transition hover:border-emerald-500/60 hover:bg-emerald-500/10 sm:inline-flex"
-            >
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={currentUser?.full_name || "Foto de perfil"}
-                  className="h-7 w-7 rounded-full object-cover"
-                />
-              ) : (
-                <i className="fa-solid fa-user text-[0.75rem]" />
-              )}
-              <span className="max-w-[7rem] truncate">
-                {currentUser?.full_name || "Perfil"}
-              </span>
-            </Link>
-
             {!isAuthed ? (
               <>
                 <Link
@@ -179,14 +164,69 @@ export default function Navbar() {
                 </Link>
               </>
             ) : (
-              <button
-                type="button"
-                onClick={() => setShowLogoutConfirm(true)}
-                className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-3 py-1.5 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
-              >
-                <i className="fa-solid fa-right-from-bracket text-[0.75rem]" />
-                <span>Salir</span>
-              </button>
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-emerald-50 transition hover:border-emerald-500/60 hover:bg-emerald-500/10"
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                >
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={currentUser?.full_name || "Foto de perfil"}
+                      className="h-7 w-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500/20 text-emerald-200">
+                      <i className="fa-solid fa-user text-[0.75rem]" />
+                    </div>
+                  )}
+                  <span className="max-w-[7rem] truncate">
+                    {currentUser?.full_name || "Mi cuenta"}
+                  </span>
+                  <i className="fa-solid fa-chevron-down text-[0.65rem] text-emerald-100" />
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/10 bg-[#040f19] p-2 text-xs shadow-[0_18px_40px_rgba(0,0,0,0.6)]">
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        router.push(profileHref);
+                      }}
+                    >
+                      <i className="fa-solid fa-user text-[0.7rem]" />
+                      <span>Mi perfil</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        router.push("/controlPanel");
+                      }}
+                    >
+                      <i className="fa-solid fa-table-columns text-[0.7rem]" />
+                      <span>Panel de control</span>
+                    </button>
+                    <div className="my-1 h-px bg-white/10" />
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-red-300 hover:bg-red-500/10"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        setShowLogoutConfirm(true);
+                      }}
+                    >
+                      <i className="fa-solid fa-right-from-bracket text-[0.7rem]" />
+                      <span>Salir</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -235,14 +275,6 @@ export default function Navbar() {
                         <i className="fa-solid fa-suitcase text-[0.7rem]" />
                         <span>Mis servicios</span>
                       </Link>
-                      <Link
-                        href="/controlPanel"
-                        onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-emerald-50 hover:bg-white/5"
-                      >
-                        <i className="fa-solid fa-table-columns text-[0.7rem]" />
-                        <span>Control Panel</span>
-                      </Link>
                     </>
                   )}
                 </div>
@@ -263,7 +295,9 @@ export default function Navbar() {
                         className="h-6 w-6 rounded-full object-cover"
                       />
                     ) : (
-                      <i className="fa-solid fa-id-badge text-[0.7rem]" />
+                      <div className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500/20 text-emerald-200">
+                        <i className="fa-solid fa-user text-[0.7rem]" />
+                      </div>
                     )}
                     <span>Ver perfil</span>
                   </Link>
