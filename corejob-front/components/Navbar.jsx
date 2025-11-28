@@ -67,10 +67,7 @@ export default function Navbar() {
       ) {
         setMobileOpen(false);
       }
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(event.target)
-      ) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setUserMenuOpen(false);
       }
     };
@@ -118,7 +115,7 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-white">
-                ConectaLA.
+                ConectaLA
               </span>
               <span className="text-[11px] text-emerald-100/70">
                 {isAuthed ? "Cuenta personal" : "Invitado"}
