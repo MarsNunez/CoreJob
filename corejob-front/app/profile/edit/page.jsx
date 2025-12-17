@@ -630,7 +630,7 @@ export default function EditProfilePage() {
                   value={profileForm.service_address}
                   onChange={handleProfileChange}
                   className="rounded-2xl border border-white/10 bg-[#0d1b28] px-4 py-3 text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600/40"
-                  placeholder="Calle, ciudad, país"
+                  placeholder="Calle, ciudad, país."
                 />
               </label>
               <label className="flex flex-col gap-2 text-sm text-slate-200">
